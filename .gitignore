@@ -1,0 +1,30 @@
+# Node
+node_modules/
+dist/
+*.tsbuildinfo
+coverage/
+
+# Prisma (client généré)
+api/src/generated/
+
+# Environnement
+.env
+.env.*
+!.env.example
+
+# Python
+data/.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+
+# Données collectées (volumineuses, régénérables)
+data/output/
+
+# Éditeurs / système
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.log

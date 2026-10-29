@@ -1,0 +1,127 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Palette « latérite & ravinala » : ivoire, terre cuite, vert ravinala.
+ * Les composants n'utilisent que ces jetons (bg-canvas, text-ink, border-line, bg-accent…),
+ * le mode sombre se résume donc à redéfinir les variables sous .dark.
+ */
+:root {
+  --canvas: #faf6ef;
+  --surface: #ffffff;
+  --surface-2: #f3ece1;
+  --ink: #221a14;
+  --ink-soft: #4a3f36;
+  --muted: #74675c;
+  --line: #e7dccd;
+  --accent: #b4441f;
+  --accent-ink: #ffffff;
+  --accent-soft: #f6e3d8;
+  --leaf: #2f6b4f;
+  --leaf-soft: #e1eee6;
+  --mark: #f7e2a6;
+  --danger: #b42318;
+  --danger-soft: #fde8e6;
+  --shadow: 34 26 20;
+}
+
+.dark {
+  --canvas: #14110e;
+  --surface: #1c1814;
+  --surface-2: #26201a;
+  --ink: #f3ebe0;
+  --ink-soft: #d8cbbb;
+  --muted: #a3968a;
+  --line: #332b24;
+  --accent: #e07a4f;
+  --accent-ink: #1a120c;
+  --accent-soft: #3a2419;
+  --leaf: #7fbf9a;
+  --leaf-soft: #1e2f26;
+  --mark: #5a4413;
+  --danger: #f97066;
+  --danger-soft: #3d1a17;
+  --shadow: 0 0 0;
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-leaf: var(--leaf);
+  --color-leaf-soft: var(--leaf-soft);
+  --color-mark: var(--mark);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+}
+
+@theme {
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'Fraunces Variable', ui-serif, Georgia, 'Times New Roman', serif;
+  --shadow-soft: 0 1px 2px rgb(var(--shadow) / 0.04), 0 8px 24px -12px rgb(var(--shadow) / 0.18);
+  --shadow-lift: 0 2px 4px rgb(var(--shadow) / 0.05), 0 18px 40px -18px rgb(var(--shadow) / 0.28);
+}
+
+@utility container-page {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 72rem;
+  padding-inline: 1rem;
+  @media (width >= 40rem) {
+    padding-inline: 1.5rem;
+  }
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-canvas font-sans text-ink antialiased;
+  }
+
+  ::selection {
+    background: var(--accent-soft);
+    color: var(--ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 0.375rem;
+  }
+
+  mark {
+    background: var(--mark);
+    color: inherit;
+    border-radius: 0.2em;
+    padding-inline: 0.1em;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

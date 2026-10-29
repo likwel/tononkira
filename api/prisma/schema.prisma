@@ -1,0 +1,89 @@
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Artist {
+  id        Int          @id @default(autoincrement())
+  slug      String       @unique
+  name      String
+  /// Nom sans accents ni ponctuation initiale, en minuscules : tri et filtre A–Z.
+  sortName  String       @map("sort_name")
+  imageUrl  String?      @map("image_url")
+  songs     SongArtist[]
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+
+  @@index([sortName])
+  @@index([name(ops: raw("gin_trgm_ops"))], type: Gin, map: "artists_name_trgm_idx")
+  @@map("artists")
+}
+
+model Song {
+  id          Int          @id @default(autoincrement())
+  /// Artiste principal (premier segment de l'URL /hira/:artistSlug/:slug).
+  artistSlug  String       @map("artist_slug")
+  slug        String
+  title       String
+  /// Titre sans accents ni ponctuation initiale, en minuscules : tri et filtre A–Z.
+  sortTitle   String       @map("sort_title")
+  lyrics      String
+  views       Int          @default(0)
+  likes       Int          @default(0)
+  contributor String?
+  publishedAt DateTime?    @map("published_at")
+  imageUrl    String?      @map("image_url")
+  audioUrl    String?      @map("audio_url")
+  source      String
+  sourceUrl   String       @unique @map("source_url")
+  scrapedAt   DateTime?    @map("scraped_at")
+  /// Empreinte du contenu importé : une ligne identique à la base n'est pas réécrite.
+  contentHash String?      @map("content_hash")
+  artists     SongArtist[]
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  @@unique([artistSlug, slug])
+  @@index([publishedAt])
+  @@index([views])
+  @@index([sortTitle])
+  @@index([title(ops: raw("gin_trgm_ops"))], type: Gin, map: "songs_title_trgm_idx")
+  @@index([lyrics(ops: raw("gin_trgm_ops"))], type: Gin, map: "songs_lyrics_trgm_idx")
+  @@map("songs")
+}
+
+model SongArtist {
+  songId   Int    @map("song_id")
+  artistId Int    @map("artist_id")
+  position Int    @default(0)
+  song     Song   @relation(fields: [songId], references: [id], onDelete: Cascade)
+  artist   Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@id([songId, artistId])
+  @@index([artistId])
+  @@map("song_artists")
+}
+
+/// Historique des tâches lancées depuis l'administration (collecte, mise à jour, import…).
+model CrawlJob {
+  id         Int       @id @default(autoincrement())
+  /// crawl | update | recheck | import
+  type       String
+  options    Json      @default("{}")
+  /// running | succeeded | failed | cancelled | interrupted
+  status     String
+  summary    Json      @default("{}")
+  /// Dernières lignes du journal de la tâche.
+  log        String    @default("")
+  startedAt  DateTime  @default(now()) @map("started_at")
+  finishedAt DateTime? @map("finished_at")
+
+  @@index([startedAt])
+  @@map("crawl_jobs")
+}

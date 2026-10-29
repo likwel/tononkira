@@ -1,0 +1,10 @@
+{
+  "name": "Tononkira — Paroles de chansons malagasy",
+  "short_name": "Tononkira",
+  "lang": "fr",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#faf6ef",
+  "theme_color": "#b4441f",
+  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

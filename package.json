@@ -1,0 +1,42 @@
+{
+  "name": "tononkira",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Tononkira — paroles de chansons malagasy : collecte (data), API (api) et interface web (web).",
+  "type": "module",
+  "workspaces": [
+    "api",
+    "web"
+  ],
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n api,web -c cyan,magenta \"npm run dev -w api\" \"npm run dev -w web\"",
+    "build": "npm run build -w api && npm run build -w web",
+    "typecheck": "npm run typecheck -w api && npm run typecheck -w web",
+    "test": "npm run test -w api && npm run test -w web && npm run data:test",
+    "format": "prettier --write .",
+    "db:up": "docker compose up -d --wait db",
+    "db:down": "docker compose down",
+    "db:migrate": "npm run db:migrate -w api",
+    "db:import": "npm run db:import -w api --",
+    "data:setup": "cd data && python3 -m venv --copies .venv && .venv/bin/pip install -q -e '.[dev]'",
+    "data:test": "cd data && .venv/bin/python -m pytest -q",
+    "data:crawl": "cd data && .venv/bin/python -m tononkira_data crawl",
+    "data:export": "cd data && .venv/bin/python -m tononkira_data export",
+    "data:stats": "cd data && .venv/bin/python -m tononkira_data stats"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "prettier": "^3.6.2"
+  },
+  "overrides": {
+    "vite": "^7.3.7"
+  },
+  "allowScripts": {
+    "prisma@7.10.1": true,
+    "@prisma/engines@7.10.1": true,
+    "esbuild@0.28.2": true
+  }
+}

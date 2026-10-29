@@ -1,0 +1,24 @@
+name: tononkira
+
+services:
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: tononkira
+      POSTGRES_PASSWORD: tononkira
+      POSTGRES_DB: tononkira
+    ports:
+      # 5432 et 5433 sont souvent déjà pris en local : on expose sur 5434.
+      - "127.0.0.1:5434:5432"
+    volumes:
+      # Volume nommé (et non un dossier du projet) : Postgres refuse les disques NTFS.
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tononkira -d tononkira"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  pgdata:

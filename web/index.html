@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta
+      name="description"
+      content="Tononkira : les paroles des chansons malagasy. Recherchez par titre, artiste ou vers."
+    />
+    <meta name="theme-color" content="#faf6ef" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <title>Tononkira — Paroles de chansons malagasy</title>
+    <script>
+      // Appliqué avant le premier rendu pour éviter un flash du mauvais thème.
+      (function () {
+        var pref = 'system';
+        try {
+          pref = localStorage.getItem('tononkira-theme') || 'system';
+        } catch (e) {}
+        var dark =
+          pref === 'dark' ||
+          (pref !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        var root = document.documentElement;
+        root.classList.toggle('dark', dark);
+        root.style.colorScheme = dark ? 'dark' : 'light';
+        document
+          .querySelector('meta[name="theme-color"]')
+          .setAttribute('content', dark ? '#14110e' : '#faf6ef');
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
