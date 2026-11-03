@@ -2,7 +2,7 @@
 import type { PageMeta, Stats } from '../lib/types';
 
 export type CrawlStatus = 'pending' | 'done' | 'error' | 'gone';
-export type CrawlSort = 'recent' | 'stale' | 'title';
+export type CrawlSort = 'recent' | 'changed' | 'stale' | 'title';
 export type JobType = 'crawl' | 'update' | 'recheck' | 'import';
 export type JobStatus = 'running' | 'succeeded' | 'failed' | 'cancelled' | 'interrupted';
 
@@ -68,7 +68,14 @@ export interface ImportReport {
 export interface JobSummary {
   lists?: { pages: number; found: number; new: number };
   songs?: { total: number; saved: number; gone: number; errors: number };
-  recheck?: { total: number; new: number; updated: number; unchanged: number; gone: number; errors: number };
+  recheck?: {
+    total: number;
+    new: number;
+    updated: number;
+    unchanged: number;
+    gone: number;
+    errors: number;
+  };
   exported?: number;
   import?: ImportReport;
   error?: string;

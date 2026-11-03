@@ -18,7 +18,10 @@ const SOURCE_LIST = 'https://tononkira.serasera.org/hira?page=';
 function refreshText(result: ListPageRefresh): { text: string; tone: 'ok' | 'changed' | 'muted' } {
   if (result.empty) return { text: 'Page vide : au-delà de la dernière page', tone: 'muted' };
   if (result.new === 0) return { text: `À jour (${plural(result.found, 'chanson')})`, tone: 'ok' };
-  return { text: `+${plural(result.new, 'nouvelle chanson', 'nouvelles chansons')}`, tone: 'changed' };
+  return {
+    text: `+${plural(result.new, 'nouvelle chanson', 'nouvelles chansons')}`,
+    tone: 'changed',
+  };
 }
 
 function useRefresh() {
@@ -57,7 +60,11 @@ function ListRow({ item }: { item: ListPage }) {
         <ExternalLink className="size-3.5 text-muted" aria-hidden="true" />
       </a>
       <span className="w-28 text-sm text-muted">{plural(item.songCount, 'chanson')}</span>
-      <time className="text-sm text-muted" dateTime={item.fetchedAt} title={formatDateTime(item.fetchedAt)}>
+      <time
+        className="text-sm text-muted"
+        dateTime={item.fetchedAt}
+        title={formatDateTime(item.fetchedAt)}
+      >
         lue {timeAgo(item.fetchedAt)}
       </time>
       <div className="ml-auto flex items-center gap-3">
@@ -145,7 +152,9 @@ export function ListPagesPage() {
       ) : (
         <div className="rounded-3xl border border-line bg-surface px-4 shadow-soft sm:px-6">
           <ul className={cx('divide-y divide-line/70', pages.isPlaceholderData && 'opacity-60')}>
-            {pages.data?.data.map((item) => <ListRow key={item.page} item={item} />)}
+            {pages.data?.data.map((item) => (
+              <ListRow key={item.page} item={item} />
+            ))}
           </ul>
         </div>
       )}

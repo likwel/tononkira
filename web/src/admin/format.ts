@@ -77,16 +77,24 @@ export function formatDateTime(iso: string | null | undefined): string {
 
 /** Durée lisible : « 45 s », « 3 min 12 s », « 2 h 05 ». */
 export function formatDuration(start: string, end: string | null, now = Date.now()): string {
-  const seconds = Math.max(0, Math.round(((end ? new Date(end).getTime() : now) - new Date(start).getTime()) / 1000));
+  const seconds = Math.max(
+    0,
+    Math.round(((end ? new Date(end).getTime() : now) - new Date(start).getTime()) / 1000),
+  );
   if (seconds < 60) return `${seconds} s`;
-  if (seconds < 3600) return `${Math.floor(seconds / 60)} min ${String(seconds % 60).padStart(2, '0')} s`;
+  if (seconds < 3600)
+    return `${Math.floor(seconds / 60)} min ${String(seconds % 60).padStart(2, '0')} s`;
   return `${Math.floor(seconds / 3600)} h ${String(Math.floor((seconds % 3600) / 60)).padStart(2, '0')}`;
 }
 
 export function describeOptions(type: JobType, options: JobOptions): string {
   const parts: string[] = [];
   if (type === 'crawl') {
-    parts.push(options.to ? `pages ${options.from ?? 1} à ${options.to}` : `depuis la page ${options.from ?? 1}`);
+    parts.push(
+      options.to
+        ? `pages ${options.from ?? 1} à ${options.to}`
+        : `depuis la page ${options.from ?? 1}`,
+    );
   }
   if (options.limit) parts.push(`${formatNumber(options.limit)} chansons max.`);
   if (options.retryErrors) parts.push('erreurs retentées');
@@ -141,7 +149,10 @@ export function describeProgress(progress: JobProgress): { label: string; percen
   return { label, percent };
 }
 
-export function describeRefresh(result: RefreshResult): { text: string; tone: 'ok' | 'changed' | 'muted' | 'error' } {
+export function describeRefresh(result: RefreshResult): {
+  text: string;
+  tone: 'ok' | 'changed' | 'muted' | 'error';
+} {
   const catalog =
     result.imported === 'created'
       ? ' · ajoutée au catalogue'

@@ -53,8 +53,30 @@ export function SearchBox({
   const [value, setValue] = useState(initialValue);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
+  const [focused, setFocused] = useState(false);
 
   useEffect(() => setValue(initialValue), [initialValue]);
+
+  // « / » place le curseur dans la recherche visible, sauf pendant une saisie ou une fenêtre.
+  useEffect(() => {
+    const onShortcut = (event: globalThis.KeyboardEvent) => {
+      if (event.key !== '/' || event.ctrlKey || event.metaKey || event.altKey) return;
+      const target = event.target as HTMLElement | null;
+      if (
+        target?.isContentEditable ||
+        ['INPUT', 'TEXTAREA', 'SELECT'].includes(target?.tagName ?? '')
+      )
+        return;
+      const input = inputRef.current;
+      if (!input || !(input.checkVisibility?.() ?? true)) return;
+      if (document.querySelector('[aria-modal="true"]')) return;
+      event.preventDefault();
+      input.focus();
+      input.select();
+    };
+    window.addEventListener('keydown', onShortcut);
+    return () => window.removeEventListener('keydown', onShortcut);
+  }, []);
 
   const q = value.trim();
   const debounced = useDebouncedValue(q, 200);
@@ -150,14 +172,29 @@ export function SearchBox({
           setOpen(true);
           setActive(-1);
         }}
-        onFocus={() => setOpen(true)}
-        onBlur={() => setOpen(false)}
+        onFocus={() => {
+          setOpen(true);
+          setFocused(true);
+        }}
+        onBlur={() => {
+          setOpen(false);
+          setFocused(false);
+        }}
         onKeyDown={onKeyDown}
         className={cx(
           'w-full rounded-full border border-line bg-surface text-ink shadow-soft transition placeholder:text-muted/80 focus:border-accent/60 focus:outline-none focus:ring-4 focus:ring-accent/15 [&::-webkit-search-cancel-button]:hidden',
           large ? 'h-14 pr-12 pl-13 text-base sm:text-lg' : 'h-10 pr-9 pl-10 text-sm',
         )}
       />
+      {!large && !focused && !value && (
+        <kbd
+          aria-hidden="true"
+          className="pointer-events-none absolute top-1/2 right-3 hidden -translate-y-1/2 rounded-md border border-line bg-surface-2 px-1.5 font-sans text-[11px] leading-5 text-muted lg:block"
+          title="Raccourci : /"
+        >
+          /
+        </kbd>
+      )}
       {isFetching && open && (
         <LoaderCircle
           className={cx(

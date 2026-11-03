@@ -61,7 +61,9 @@ describe('accès', () => {
   });
 
   it("est désactivé quand aucun jeton n'est configuré", async () => {
-    const res = await request(build({ token: undefined })).get('/api/admin/session').set(auth);
+    const res = await request(build({ token: undefined }))
+      .get('/api/admin/session')
+      .set(auth);
     expect(res.status).toBe(503);
     expect(res.body.error.code).toBe('admin_disabled');
   });
@@ -90,7 +92,13 @@ describe('historique des pages collectées', () => {
       .get('/api/admin/pages?status=done&q=%20potika%20&sort=stale&page=2')
       .set(auth);
     expect(res.status).toBe(200);
-    expect(crawl.lastSongsQuery).toEqual({ page: 2, limit: 25, status: 'done', q: 'potika', sort: 'stale' });
+    expect(crawl.lastSongsQuery).toEqual({
+      page: 2,
+      limit: 25,
+      status: 'done',
+      q: 'potika',
+      sort: 'stale',
+    });
     expect(res.body.data[0].catalog).toEqual({ artistSlug: 'magma', slug: 'potika' });
   });
 
@@ -111,19 +119,31 @@ describe('vérifier une page déjà collectée', () => {
   it('relit la page, signale les changements et met la base à jour', async () => {
     const song = { title: 'potika', source_url: CRAWL_SONG.url };
     python.script = {
-      events: [{ url: CRAWL_SONG.url, status: 'updated', changes: ['paroles'], stats: ['vues'], song }],
+      events: [
+        { url: CRAWL_SONG.url, status: 'updated', changes: ['paroles'], stats: ['vues'], song },
+      ],
     };
-    const res = await request(app).post('/api/admin/pages/refresh').set(auth).send({ url: CRAWL_SONG.url });
+    const res = await request(app)
+      .post('/api/admin/pages/refresh')
+      .set(auth)
+      .send({ url: CRAWL_SONG.url });
 
     expect(res.status).toBe(200);
     expect(python.calls[0]).toEqual(['refresh', '--url', CRAWL_SONG.url, '--json']);
-    expect(res.body.data).toMatchObject({ status: 'updated', changes: ['paroles'], imported: 'updated' });
+    expect(res.body.data).toMatchObject({
+      status: 'updated',
+      changes: ['paroles'],
+      imported: 'updated',
+    });
     expect(library.imported).toEqual([song]);
   });
 
   it("n'importe rien pour une page disparue", async () => {
     python.script = { events: [{ url: CRAWL_SONG.url, status: 'gone', song: null }] };
-    const res = await request(app).post('/api/admin/pages/refresh').set(auth).send({ url: CRAWL_SONG.url });
+    const res = await request(app)
+      .post('/api/admin/pages/refresh')
+      .set(auth)
+      .send({ url: CRAWL_SONG.url });
     expect(res.body.data).toMatchObject({ status: 'gone', imported: null });
     expect(library.imported).toEqual([]);
   });
@@ -141,7 +161,10 @@ describe('vérifier une page déjà collectée', () => {
 
   it('répond 502 si la commande Python ne renvoie rien', async () => {
     python.script = { logs: ['Traceback: ModuleNotFoundError'], code: 1 };
-    const res = await request(app).post('/api/admin/pages/refresh').set(auth).send({ url: CRAWL_SONG.url });
+    const res = await request(app)
+      .post('/api/admin/pages/refresh')
+      .set(auth)
+      .send({ url: CRAWL_SONG.url });
     expect(res.status).toBe(502);
     expect(res.body.error.message).toContain('ModuleNotFoundError');
   });
@@ -152,7 +175,15 @@ describe('pages de liste', () => {
     python.script = { events: [{ event: 'list_page', page: 9, last: 9, found: 20, new: 3 }] };
     const res = await request(app).post('/api/admin/list-pages/9/refresh').set(auth);
     expect(python.calls[0]).toEqual([
-      'crawl', '--from', '9', '--to', '9', '--lists-only', '--refresh-lists', '--no-export', '--events',
+      'crawl',
+      '--from',
+      '9',
+      '--to',
+      '9',
+      '--lists-only',
+      '--refresh-lists',
+      '--no-export',
+      '--events',
     ]);
     expect(res.body.data).toEqual({ page: 9, found: 20, new: 3, empty: false });
   });
@@ -180,7 +211,9 @@ describe('tâches', () => {
     const second = await request(app).post('/api/admin/jobs').set(auth).send({ type: 'update' });
     expect(second.status).toBe(409);
 
-    const cancel = await request(app).post(`/api/admin/jobs/${started.body.data.id}/cancel`).set(auth);
+    const cancel = await request(app)
+      .post(`/api/admin/jobs/${started.body.data.id}/cancel`)
+      .set(auth);
     expect(cancel.status).toBe(202);
     await jobs.idle();
     const current = await request(app).get('/api/admin/jobs/current').set(auth);

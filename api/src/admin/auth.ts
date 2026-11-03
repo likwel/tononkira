@@ -16,7 +16,7 @@ export function requireAdmin(token: string | undefined): RequestHandler {
         new HttpError(
           503,
           'admin_disabled',
-          "Administration désactivée : définir ADMIN_TOKEN dans api/.env",
+          'Administration désactivée : définir ADMIN_TOKEN dans api/.env',
         ),
       );
       return;

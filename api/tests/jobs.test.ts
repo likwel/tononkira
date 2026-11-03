@@ -17,16 +17,39 @@ describe('pythonCommand', () => {
     expect(
       pythonCommand('crawl', { from: 9, to: 20, limit: 100, delay: 2, retryErrors: true }, EXPORT),
     ).toEqual([
-      'crawl', '--events', '--out', EXPORT, '--from', '9', '--to', '20', '--limit', '100',
-      '--retry-errors', '--delay', '2',
+      'crawl',
+      '--events',
+      '--out',
+      EXPORT,
+      '--from',
+      '9',
+      '--to',
+      '20',
+      '--limit',
+      '100',
+      '--retry-errors',
+      '--delay',
+      '2',
     ]);
   });
 
   it('part de la page 1 par défaut et traduit les autres tâches', () => {
-    expect(pythonCommand('crawl', {}, EXPORT)).toEqual(['crawl', '--events', '--out', EXPORT, '--from', '1']);
+    expect(pythonCommand('crawl', {}, EXPORT)).toEqual([
+      'crawl',
+      '--events',
+      '--out',
+      EXPORT,
+      '--from',
+      '1',
+    ]);
     expect(pythonCommand('update', {}, EXPORT)).toEqual(['update', '--events', '--out', EXPORT]);
     expect(pythonCommand('recheck', { limit: 30 }, EXPORT)).toEqual([
-      'recheck', '--events', '--out', EXPORT, '--limit', '30',
+      'recheck',
+      '--events',
+      '--out',
+      EXPORT,
+      '--limit',
+      '30',
     ]);
     expect(pythonCommand('import', {}, EXPORT)).toEqual(['export', '--events', '--out', EXPORT]);
   });
@@ -70,7 +93,7 @@ describe('JobRunner', () => {
     expect(importer.paths).toEqual([]);
   });
 
-  it("passe en échec si la commande Python échoue, sans importer", async () => {
+  it('passe en échec si la commande Python échoue, sans importer', async () => {
     const { python, runner, importer, store } = setup();
     python.script = { code: 1, logs: ['FetchError: HTTP 503'] };
     await runner.start('update', {});

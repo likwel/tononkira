@@ -29,10 +29,19 @@ interface SectionProps {
   subtitle?: string;
   to?: string;
   linkLabel?: string;
+  /** Action secondaire affichée à droite du titre (ex. « Effacer »). */
+  action?: ReactNode;
   children: ReactNode;
 }
 
-export function Section({ title, subtitle, to, linkLabel = 'Tout voir', children }: SectionProps) {
+export function Section({
+  title,
+  subtitle,
+  to,
+  linkLabel = 'Tout voir',
+  action,
+  children,
+}: SectionProps) {
   return (
     <section className="container-page mt-16 sm:mt-20">
       <div className="mb-6 flex items-end justify-between gap-4 border-b border-line pb-4">
@@ -40,6 +49,7 @@ export function Section({ title, subtitle, to, linkLabel = 'Tout voir', children
           <h2 className="font-serif text-2xl font-semibold tracking-tight sm:text-3xl">{title}</h2>
           {subtitle && <p className="mt-1 text-sm text-muted">{subtitle}</p>}
         </div>
+        {action}
         {to && (
           <Link
             to={to}

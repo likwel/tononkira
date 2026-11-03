@@ -1,4 +1,5 @@
 import { MicVocal, Shuffle, Sparkles } from 'lucide-react';
+import { Avatar } from '../components/Avatar';
 import { Link } from 'react-router';
 import { ArtistCard } from '../components/ArtistCard';
 import { Section } from '../components/PageParts';
@@ -9,7 +10,11 @@ import { EmptyState, ErrorState } from '../components/States';
 import { buttonGhost } from '../components/ui';
 import { useArtists, useSongs, useStats } from '../hooks/queries';
 import { useRandomSong } from '../hooks/useRandomSong';
-import { formatNumber } from '../lib/format';
+import { songPath } from '../lib/api';
+import { artistNames, formatNumber } from '../lib/format';
+import { clearHistory, useHistory } from '../lib/history';
+
+const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
 export function HomePage() {
   const stats = useStats();
@@ -17,6 +22,7 @@ export function HomePage() {
   const recent = useSongs({ sort: 'recent', limit: 6 });
   const artists = useArtists({ sort: 'songs', limit: 12 });
   const random = useRandomSong();
+  const history = useHistory();
   const empty = stats.data?.songs === 0;
 
   return (
@@ -30,7 +36,7 @@ export function HomePage() {
           <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-line to-transparent" />
         </div>
 
-        <div className="container-page flex flex-col items-center py-16 text-center sm:py-24">
+        <div className="container-page flex flex-col items-center pt-14 pb-12 text-center sm:pt-24 sm:pb-16">
           <p className="inline-flex items-center gap-2 rounded-full border border-line bg-surface/70 px-3.5 py-1 text-xs font-medium text-ink-soft backdrop-blur">
             <Sparkles className="size-3.5 text-accent" aria-hidden="true" />
             {stats.data
@@ -71,6 +77,50 @@ export function HomePage() {
         </div>
       ) : (
         <>
+          {history.length > 0 && (
+            <Section
+              title="Reprendre la lecture"
+              subtitle="Vos dernières chansons, sur cet appareil"
+              action={
+                <button
+                  type="button"
+                  onClick={clearHistory}
+                  className="shrink-0 text-sm text-muted transition-colors hover:text-accent"
+                >
+                  Effacer
+                </button>
+              }
+            >
+              <ul className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 lg:grid-cols-6">
+                {history.slice(0, 6).map((entry) => (
+                  <li
+                    key={`${entry.artistSlug}/${entry.slug}`}
+                    className="w-40 shrink-0 snap-start sm:w-auto"
+                  >
+                    <Link
+                      to={songPath(entry)}
+                      className="group flex h-full flex-col gap-3 rounded-2xl border border-line bg-surface p-3 shadow-soft transition duration-200 hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-lift"
+                    >
+                      <Avatar
+                        name={entry.artists[0]?.name ?? entry.title}
+                        seed={entry.artistSlug}
+                        shape="square"
+                      />
+                      <span className="min-w-0">
+                        <span className="line-clamp-2 font-serif text-base leading-snug text-ink transition-colors group-hover:text-accent">
+                          {entry.title}
+                        </span>
+                        <span className="mt-0.5 block truncate text-xs text-muted">
+                          {artistNames(entry.artists)}
+                        </span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </Section>
+          )}
+
           <Section
             title="Les plus consultées"
             subtitle="Le palmarès des lecteurs"
@@ -96,6 +146,27 @@ export function HomePage() {
                     ))}
               </ol>
             )}
+          </Section>
+
+          <Section
+            title="Parcourir de A à Z"
+            subtitle="Toutes les chansons, rangées par titre"
+            to="/hira?sort=title"
+            linkLabel="Liste complète"
+          >
+            <ul className="grid grid-cols-7 gap-2 sm:grid-cols-9 lg:grid-cols-13">
+              {LETTERS.map((letter) => (
+                <li key={letter}>
+                  <Link
+                    to={`/hira?sort=title&letter=${letter.toLowerCase()}`}
+                    aria-label={`Chansons commençant par ${letter}`}
+                    className="grid aspect-square place-items-center rounded-xl border border-line bg-surface font-serif text-xl font-semibold text-ink-soft shadow-soft transition duration-200 hover:-translate-y-0.5 hover:border-accent/50 hover:bg-accent-soft hover:text-accent sm:text-2xl"
+                  >
+                    {letter}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </Section>
 
           <Section title="Ajouts récents" subtitle="Les dernières paroles publiées" to="/hira">

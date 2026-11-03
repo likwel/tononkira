@@ -1,6 +1,7 @@
 import {
   AArrowDown,
   AArrowUp,
+  BookOpenText,
   CalendarDays,
   Check,
   ChevronRight,
@@ -14,6 +15,7 @@ import {
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { FavoriteButton } from '../components/FavoriteButton';
+import { ReadingMode } from '../components/ReadingMode';
 import { LyricsView } from '../components/LyricsView';
 import { LoadingLabel } from '../components/Skeletons';
 import { SongCard } from '../components/SongCard';
@@ -22,6 +24,7 @@ import { buttonSecondary, cx, iconButton } from '../components/ui';
 import { useSong } from '../hooks/queries';
 import { artistPath } from '../lib/api';
 import { artistNames, formatDate, formatNumber } from '../lib/format';
+import { recordView } from '../lib/history';
 import { readStorage, writeStorage } from '../lib/storage';
 import type { SongDetail } from '../lib/types';
 
@@ -103,6 +106,10 @@ export function SongPage() {
 function SongView({ song }: { song: SongDetail }) {
   const lyricsSize = useLyricsSize();
   const [flash, setFlash] = useFlash();
+  const [reading, setReading] = useState(false);
+
+  // Rubrique « Reprendre la lecture » de l'accueil.
+  useEffect(() => recordView(song), [song.artistSlug, song.slug]);
   const mainArtist = song.artists[0];
   const date = formatDate(song.publishedAt);
 
@@ -207,10 +214,20 @@ function SongView({ song }: { song: SongDetail }) {
 
       <div className="sticky top-16 z-30 -mx-4 mt-6 flex items-center gap-1 border-y border-line/70 bg-canvas/85 px-4 py-2 backdrop-blur-md sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:backdrop-blur-none print:hidden">
         <FavoriteButton song={song} />
+        <button
+          type="button"
+          onClick={() => setReading(true)}
+          className={cx(buttonSecondary, 'whitespace-nowrap')}
+          title="Lecture plein écran avec défilement automatique"
+        >
+          <BookOpenText className="size-4" aria-hidden="true" />
+          <span className="sm:hidden">Lire</span>
+          <span className="max-sm:hidden">Mode lecture</span>
+        </button>
         <div className="ml-auto flex items-center gap-0.5">
           <button
             type="button"
-            className={cx(iconButton, 'disabled:opacity-40')}
+            className={cx(iconButton, 'max-sm:hidden disabled:opacity-40')}
             onClick={lyricsSize.decrease}
             disabled={!lyricsSize.canDecrease}
             aria-label="Réduire la taille du texte"
@@ -220,7 +237,7 @@ function SongView({ song }: { song: SongDetail }) {
           </button>
           <button
             type="button"
-            className={cx(iconButton, 'disabled:opacity-40')}
+            className={cx(iconButton, 'max-sm:hidden disabled:opacity-40')}
             onClick={lyricsSize.increase}
             disabled={!lyricsSize.canIncrease}
             aria-label="Agrandir la taille du texte"
@@ -275,6 +292,7 @@ function SongView({ song }: { song: SongDetail }) {
       <div className="mt-6 rounded-3xl border border-line bg-surface px-5 py-7 shadow-soft sm:px-12 sm:py-12 print:border-0 print:px-0 print:shadow-none">
         <LyricsView lyrics={song.lyrics} size={lyricsSize.size} />
       </div>
+      {reading && <ReadingMode song={song} onClose={() => setReading(false)} />}
 
       {song.audioUrl && (
         <section className="mt-6 rounded-2xl border border-line bg-surface p-5 shadow-soft print:hidden">
@@ -287,7 +305,6 @@ function SongView({ song }: { song: SongDetail }) {
           </audio>
         </section>
       )}
-
 
       {song.related.length > 0 && (
         <section className="mt-16 print:hidden" aria-labelledby="related-title">

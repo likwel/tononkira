@@ -1,11 +1,7 @@
 import { pino } from 'pino';
 import { SqliteCrawlState } from './admin/crawl-state.js';
 import { JobRunner } from './admin/jobs.js';
-import {
-  PrismaFileImporter,
-  PrismaJobStore,
-  PrismaSongLibrary,
-} from './admin/prisma-adapters.js';
+import { PrismaFileImporter, PrismaJobStore, PrismaSongLibrary } from './admin/prisma-adapters.js';
 import { ProcessPythonRunner } from './admin/python.js';
 import { createApp } from './app.js';
 import { loadConfig } from './config.js';

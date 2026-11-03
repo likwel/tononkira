@@ -24,7 +24,11 @@ function JobLog({ id }: { id: number }) {
   const { data, isPending } = useJob(id);
   if (isPending) return <p className="text-sm text-muted">Chargement du journal…</p>;
   const lines = data && 'logs' in data ? data.logs : (data?.log ?? '').split('\n').filter(Boolean);
-  return lines.length ? <LogConsole lines={lines} className="max-h-96" /> : <p className="text-sm text-muted">Journal vide.</p>;
+  return lines.length ? (
+    <LogConsole lines={lines} className="max-h-96" />
+  ) : (
+    <p className="text-sm text-muted">Journal vide.</p>
+  );
 }
 
 function JobRow({ job, open, onToggle }: { job: JobRecord; open: boolean; onToggle: () => void }) {
@@ -48,7 +52,10 @@ function JobRow({ job, open, onToggle }: { job: JobRecord; open: boolean; onTogg
             {timeAgo(job.startedAt)}
           </time>
           <span className="tabular-nums">{formatDuration(job.startedAt, job.finishedAt)}</span>
-          <ChevronDown className={cx('size-4 transition-transform', open && 'rotate-180')} aria-hidden="true" />
+          <ChevronDown
+            className={cx('size-4 transition-transform', open && 'rotate-180')}
+            aria-hidden="true"
+          />
         </span>
       </button>
       {(summary.length > 0 || job.summary.error) && (
@@ -80,7 +87,9 @@ export function JobsPage() {
       {jobs.isError ? (
         <ErrorState error={jobs.error} onRetry={() => jobs.refetch()} />
       ) : jobs.data && jobs.data.data.length === 0 ? (
-        <EmptyState title="Aucune tâche">Les collectes et imports lancés ici apparaîtront dans cette liste.</EmptyState>
+        <EmptyState title="Aucune tâche">
+          Les collectes et imports lancés ici apparaîtront dans cette liste.
+        </EmptyState>
       ) : (
         <div className="rounded-3xl border border-line bg-surface px-4 shadow-soft sm:px-6">
           <ul className="divide-y divide-line/70">

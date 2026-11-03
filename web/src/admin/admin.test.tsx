@@ -5,7 +5,13 @@ import { MemoryRouter } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { clearAdminToken, getAdminToken, setAdminToken } from './auth';
 import { buildOptions } from './components/LaunchForm';
-import { describeOptions, describeRefresh, describeSummary, formatDuration, timeAgo } from './format';
+import {
+  describeOptions,
+  describeRefresh,
+  describeSummary,
+  formatDuration,
+  timeAgo,
+} from './format';
 import { CrawlPagesPage } from './pages/CrawlPagesPage';
 import { LoginPage } from './pages/LoginPage';
 import type { CrawlSong, RefreshResult } from './types';
@@ -33,13 +39,19 @@ const refresh = (overrides: Partial<RefreshResult>): RefreshResult => ({
 
 describe('formatage', () => {
   it('décrit le résultat d’une vérification', () => {
-    expect(describeRefresh(refresh({ status: 'updated', changes: ['paroles', 'titre'], imported: 'updated' }))).toEqual({
+    expect(
+      describeRefresh(
+        refresh({ status: 'updated', changes: ['paroles', 'titre'], imported: 'updated' }),
+      ),
+    ).toEqual({
       text: 'Modifiée : paroles, titre · catalogue mis à jour',
       tone: 'changed',
     });
     expect(describeRefresh(refresh({ stats: ['vues'] })).text).toBe('À jour (vues actualisées)');
     expect(describeRefresh(refresh({ status: 'gone' })).tone).toBe('muted');
-    expect(describeRefresh(refresh({ status: 'error', error: 'HTTP 503' })).text).toBe('Échec : HTTP 503');
+    expect(describeRefresh(refresh({ status: 'error', error: 'HTTP 503' })).text).toBe(
+      'Échec : HTTP 503',
+    );
   });
 
   it('résume options et résultats d’une tâche', () => {
@@ -68,7 +80,9 @@ describe('formatage', () => {
 
 describe('buildOptions', () => {
   it('omet les champs vides et ne garde que les options du type de tâche', () => {
-    expect(buildOptions('crawl', { ...EMPTY_FORM, from: '9', delay: '2', retryErrors: true })).toEqual({
+    expect(
+      buildOptions('crawl', { ...EMPTY_FORM, from: '9', delay: '2', retryErrors: true }),
+    ).toEqual({
       from: 9,
       delay: 2,
       retryErrors: true,
@@ -100,7 +114,10 @@ afterEach(() => {
 
 describe('connexion', () => {
   it('refuse un jeton invalide sans le mémoriser', async () => {
-    vi.stubGlobal('fetch', vi.fn(() => json({ error: { message: "Jeton d'administration invalide" } }, 401)));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => json({ error: { message: "Jeton d'administration invalide" } }, 401)),
+    );
     const user = userEvent.setup();
     renderWithProviders(<LoginPage />);
 
@@ -123,7 +140,9 @@ describe('connexion', () => {
     await vi.waitFor(() => expect(getAdminToken()).toBe('bon-jeton'));
     expect(fetchMock).toHaveBeenCalledWith(
       '/api/admin/session',
-      expect.objectContaining({ headers: expect.objectContaining({ Authorization: 'Bearer bon-jeton' }) }),
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: 'Bearer bon-jeton' }),
+      }),
     );
   });
 });
@@ -152,7 +171,9 @@ describe('pages collectées', () => {
     const fetchMock = vi.fn((url: string, init?: RequestInit) => {
       if (url.startsWith('/api/admin/pages/refresh')) {
         expect(JSON.parse(String(init?.body))).toEqual({ url: song.url });
-        return json({ data: refresh({ status: 'updated', changes: ['paroles'], imported: 'updated' }) });
+        return json({
+          data: refresh({ status: 'updated', changes: ['paroles'], imported: 'updated' }),
+        });
       }
       return json({ data: [song], meta: { page: 1, limit: 25, total: 1, totalPages: 1 } });
     });
@@ -160,9 +181,45 @@ describe('pages collectées', () => {
     const user = userEvent.setup();
     renderWithProviders(<CrawlPagesPage />);
 
-    expect(await screen.findByRole('link', { name: 'potika' })).toHaveAttribute('href', '/hira/magma/potika');
+    expect(await screen.findByRole('link', { name: 'potika' })).toHaveAttribute(
+      'href',
+      '/hira/magma/potika',
+    );
     await user.click(screen.getByRole('button', { name: /Vérifier/ }));
 
-    expect(await screen.findByText('Modifiée : paroles · catalogue mis à jour')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Modifiée : paroles · catalogue mis à jour'),
+    ).toBeInTheDocument();
+  });
+});
+
+describe('revérification par lot', () => {
+  beforeEach(() => setAdminToken('bon-jeton'));
+
+  it('lance la revérification des 100 pages les plus anciennes avec import', async () => {
+    const bodies: unknown[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string, init?: RequestInit) => {
+        if (url === '/api/admin/jobs' && init?.method === 'POST') {
+          bodies.push(JSON.parse(String(init.body)));
+          return json({ data: { id: 1, status: 'running' } }, 202);
+        }
+        if (url.startsWith('/api/admin/overview')) {
+          return json({
+            data: { db: { songs: 1, artists: 1, lastPublishedAt: null }, crawl: null, job: null },
+          });
+        }
+        return json({ data: [], meta: { page: 1, limit: 25, total: 0, totalPages: 1 } });
+      }),
+    );
+    const user = userEvent.setup();
+    renderWithProviders(<CrawlPagesPage />);
+
+    await user.click(await screen.findByRole('button', { name: /Revérifier 100 pages/ }));
+
+    await vi.waitFor(() =>
+      expect(bodies).toEqual([{ type: 'recheck', options: { limit: 100, importAfter: true } }]),
+    );
   });
 });

@@ -20,7 +20,9 @@ export default async function setup() {
   adminUrl.pathname = '/postgres';
   const admin = createPrisma(adminUrl.toString());
   try {
-    const exists = await admin.$queryRaw<unknown[]>`SELECT 1 FROM pg_database WHERE datname = ${name}`;
+    const exists = await admin.$queryRaw<
+      unknown[]
+    >`SELECT 1 FROM pg_database WHERE datname = ${name}`;
     if (!exists.length) await admin.$executeRawUnsafe(`CREATE DATABASE "${name}"`);
   } finally {
     await admin.$disconnect();

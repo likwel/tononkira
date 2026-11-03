@@ -15,9 +15,7 @@ const schema = z.object({
   HOST: z.string().default('0.0.0.0'),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL est obligatoire (voir api/.env.example)'),
   CORS_ORIGIN: z.string().default('http://localhost:5173'),
-  LOG_LEVEL: z
-    .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
-    .default('info'),
+  LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
   /** Jeton de l'administration ; sans lui, les routes /api/admin répondent 503. */
   ADMIN_TOKEN: optional(z.string().min(24, 'ADMIN_TOKEN : au moins 24 caractères')),
   DATA_DIR: optional(z.string()),

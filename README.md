@@ -53,7 +53,8 @@ idempotent).
 | `npm run typecheck` / `npm run build` | vérification TypeScript / build de production |
 | `npm run db:up` / `db:down` | démarrer / arrêter PostgreSQL |
 | `npm run db:migrate` | appliquer les migrations Prisma (dev) ; en prod : `npm run db:deploy -w api` |
-| `npm run db:import [-- fichier.jsonl]` | importer le JSONL (défaut `data/output/songs.jsonl`) |
+| `npm run db:import [-- fichier.jsonl]` | importer le JSONL (défaut `data/output/songs.jsonl`) : mise à jour par URL source, rien n'est supprimé, les chansons inchangées sont sautées |
+| `npm run test:integration -w api` | tests avec PostgreSQL (base `tononkira_test`, créée au besoin) |
 | `npm run data:crawl [-- options]` / `data:stats` / `data:export` | collecte (voir [data/README.md](data/README.md)) |
 
 ## API
@@ -77,16 +78,47 @@ Sécurité : Helmet, CORS limité à `CORS_ORIGIN`, 300 requêtes/min/IP, param�
 par Zod, erreurs internes masquées, `Cache-Control` court sur les lectures (jamais sur
 les erreurs).
 
+## Administration (`/admin`)
+
+Accès par jeton : définir `ADMIN_TOKEN` (24 caractères ou plus) dans `api/.env`, puis
+le saisir sur `/admin`. Sans jeton, `/api/admin` répond 503 ; après 20 jetons faux en
+15 minutes, il répond 429.
+
+- **Vue d'ensemble** : chansons en base, pages collectées, en attente, en erreur, pages
+  de liste lues ; tâche en cours avec progression et journal en direct, bouton Arrêter.
+- **Lancer une tâche** : collecte (de la page X à Y, nombre de chansons, délai entre
+  requêtes), nouveautés (depuis la page 1 jusqu'à une page sans nouveauté),
+  revérification des pages déjà collectées, import seul. Import en base à la fin.
+- **Pages collectées** : historique de chaque page (statut, date de la version
+  enregistrée, dernière vérification), recherche, filtres, tri « modifiées
+  récemment » / « à revérifier ». Bouton **Vérifier** par page : relit la page, signale
+  ce qui a changé (titre, paroles, artistes…) et met la base à jour. Bouton
+  « Revérifier 100 pages » pour un lot.
+- **Pages de liste** : pages lues, relecture d'une page pour repérer de nouvelles chansons.
+- **Historique des tâches** : paramètres, résultat et journal de chaque tâche.
+
+Détection des modifications : la source glisse dans chaque page quelques mots
+aléatoires différents à chaque chargement ; une page dont la structure (strophes,
+lignes) est identique et qui diffère de 4 mots ou moins est donc considérée comme
+inchangée, et ses paroles enregistrées ne sont pas réécrites.
+
 ## Interface web
 
 Routes en malagasy : `/hira` (chansons), `/hira/:artiste/:chanson`, `/mpihira`
 (artistes), `/mpihira/:artiste`, `/karoka` (recherche), `/ankafizina` (favoris).
 
+- **Mode lecture** pour chanter : plein écran, grand texte, défilement automatique à
+  5 vitesses (Espace pour lancer ou arrêter, toucher le texte pour mettre en pause),
+  écran maintenu allumé, Échap pour sortir.
+- Accueil : « Reprendre la lecture » (dernières chansons vues sur l'appareil),
+  palmarès, abécédaire A–Z, ajouts récents, artistes.
+- Raccourci `/` : place le curseur dans la recherche.
+
 - Recherche avec suggestions au fil de la frappe (clavier ↑ ↓ Entrée Échap), surlignage
   insensible aux accents, extrait des paroles dans les résultats.
 - Page de paroles : strophes et refrains mis en forme, retrait suspendu pour les vers
   longs sur mobile, taille du texte réglable (mémorisée), copie, partage natif,
-  impression propre, extrait audio s'il existe, lien vers la page d'origine.
+  impression propre, extrait audio s'il existe.
 - Favoris sans compte (stockés dans le navigateur, synchronisés entre onglets).
 - Mobile : barre d'onglets en bas, zones tactiles de 40 px, encoches gérées
   (`safe-area-inset`). Bureau : navigation et recherche dans l'en-tête.
@@ -101,5 +133,4 @@ Les paroles appartiennent à leurs auteurs ; celles de la source actuelle ont é
 par les membres de tononkira.serasera.org. Ce site insère des **mots pièges** dans ses
 pages de paroles pour repérer les copies ; la collecte les conserve et ce dépôt ne les
 retire pas (détails dans [data/README.md](data/README.md)). **Avant une mise en ligne
-publique**, obtenir l'accord de serasera.org ou s'appuyer sur une source autorisée ;
-l'interface affiche déjà la source et le lien d'origine sur chaque chanson.
+publique**, obtenir l'accord de serasera.org ou s'appuyer sur une source autorisée.

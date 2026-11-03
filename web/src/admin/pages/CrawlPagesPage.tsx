@@ -1,10 +1,10 @@
-import { ExternalLink, LoaderCircle, RefreshCw, Search } from 'lucide-react';
+import { ExternalLink, ListRestart, LoaderCircle, RefreshCw, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router';
+import { Link, useNavigate, useSearchParams } from 'react-router';
 import { SegmentedLinks } from '../../components/Filters';
 import { Pagination } from '../../components/Pagination';
 import { EmptyState, ErrorState } from '../../components/States';
-import { cx } from '../../components/ui';
+import { buttonSecondary, cx } from '../../components/ui';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { ApiError, songPath } from '../../lib/api';
 import { artistNames, plural } from '../../lib/format';
@@ -12,7 +12,7 @@ import { pick, toPage, withParams } from '../../lib/params';
 import { AdminHeading } from '../AdminLayout';
 import { Badge, CrawlStatusBadge } from '../components/Badges';
 import { describeRefresh, formatDateTime, timeAgo } from '../format';
-import { useCrawlPages, useRefreshPage } from '../queries';
+import { useCrawlPages, useOverview, useRefreshPage, useStartJob } from '../queries';
 import type { CrawlSong, RefreshResult } from '../types';
 
 const STATUS_FILTERS = [
@@ -24,13 +24,14 @@ const STATUS_FILTERS = [
 ] as const;
 const STATUS_VALUES = STATUS_FILTERS.map((filter) => filter.value);
 const SORTS = [
-  { value: 'recent', label: 'Récemment collectées' },
+  { value: 'recent', label: 'Activité récente' },
+  { value: 'changed', label: 'Modifiées récemment' },
   { value: 'stale', label: 'À revérifier en premier' },
   { value: 'title', label: 'Titre' },
 ] as const;
 const SORT_VALUES = SORTS.map((sort) => sort.value);
 
-const COLUMNS = 'md:grid-cols-[minmax(0,1fr)_7rem_7.5rem_7.5rem_7.5rem_8rem]';
+const COLUMNS = 'md:grid-cols-[minmax(0,1fr)_7rem_8.5rem_8.5rem_8rem]';
 const smallButton =
   'inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-medium text-ink-soft shadow-soft transition-colors hover:border-accent/50 hover:text-ink disabled:opacity-60';
 
@@ -96,9 +97,8 @@ function CrawlRow({ song }: { song: CrawlSong }) {
         <div>
           <CrawlStatusBadge status={song.status} error={song.error} />
         </div>
-        <Dated label="Collectée" iso={collected ? (song.scrapedAt ?? song.updatedAt) : null} />
+        <Dated label="Version du" iso={collected ? (song.scrapedAt ?? song.updatedAt) : null} />
         <Dated label="· vérifiée" iso={song.checkedAt} />
-        <Dated label="· modifiée" iso={song.changedAt} />
       </div>
       <div className="md:text-right">
         <button
@@ -106,7 +106,11 @@ function CrawlRow({ song }: { song: CrawlSong }) {
           className={smallButton}
           onClick={() => refresh.mutate(song.url, { onSuccess: setResult })}
           disabled={refresh.isPending}
-          title={collected ? 'Relire la page et détecter une mise à jour' : 'Collecter cette page maintenant'}
+          title={
+            collected
+              ? 'Relire la page et détecter une mise à jour'
+              : 'Collecter cette page maintenant'
+          }
         >
           {refresh.isPending ? (
             <LoaderCircle className="size-3.5 animate-spin" aria-hidden="true" />
@@ -117,17 +121,55 @@ function CrawlRow({ song }: { song: CrawlSong }) {
         </button>
       </div>
       {(described || refresh.isError) && (
-        <div className="md:col-span-6 md:text-right" role="status">
+        <div className="md:col-span-5 md:text-right" role="status">
           {described ? (
             <Badge tone={described.tone}>{described.text}</Badge>
           ) : (
             <Badge tone="error">
-              {refresh.error instanceof ApiError ? refresh.error.message : 'Vérification impossible'}
+              {refresh.error instanceof ApiError
+                ? refresh.error.message
+                : 'Vérification impossible'}
             </Badge>
           )}
         </div>
       )}
     </li>
+  );
+}
+
+/** Lance la revérification des pages les moins récemment vérifiées, puis montre la tâche. */
+function RecheckButton() {
+  const overview = useOverview();
+  const start = useStartJob();
+  const navigate = useNavigate();
+  const running = overview.data?.job?.status === 'running';
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <button
+        type="button"
+        className={buttonSecondary}
+        disabled={running || start.isPending}
+        onClick={() =>
+          start.mutate(
+            { type: 'recheck', options: { limit: 100, importAfter: true } },
+            { onSuccess: () => navigate('/admin') },
+          )
+        }
+        title="Relit les 100 pages les moins récemment vérifiées et met la base à jour"
+      >
+        {start.isPending ? (
+          <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
+        ) : (
+          <ListRestart className="size-4" aria-hidden="true" />
+        )}
+        {running ? 'Tâche en cours…' : 'Revérifier 100 pages'}
+      </button>
+      {start.isError && (
+        <p className="text-xs text-danger" role="alert">
+          {start.error instanceof ApiError ? start.error.message : 'Lancement impossible'}
+        </p>
+      )}
+    </div>
   );
 }
 
@@ -142,7 +184,8 @@ export function CrawlPagesPage() {
   const debounced = useDebouncedValue(filter.trim(), 300);
   useEffect(() => setFilter(q), [q]);
   useEffect(() => {
-    if (debounced !== q.trim()) setParams(withParams(params, { q: debounced || null }), { replace: true });
+    if (debounced !== q.trim())
+      setParams(withParams(params, { q: debounced || null }), { replace: true });
     // Seule la saisie déclenche la mise à jour de l'URL.
   }, [debounced]);
 
@@ -156,7 +199,12 @@ export function CrawlPagesPage() {
   return (
     <>
       <AdminHeading title="Pages collectées">
-        {pages.data && <p className="text-sm text-muted">{plural(pages.data.meta.total, 'page')}</p>}
+        <div className="flex flex-wrap items-center gap-3">
+          {pages.data && (
+            <p className="text-sm text-muted">{plural(pages.data.meta.total, 'page')}</p>
+          )}
+          <RecheckButton />
+        </div>
       </AdminHeading>
 
       <div className="mb-6 flex flex-col gap-3">
@@ -183,7 +231,11 @@ export function CrawlPagesPage() {
             <select
               value={sort}
               onChange={(event) =>
-                setParams(withParams(params, { sort: event.target.value === 'recent' ? null : event.target.value }))
+                setParams(
+                  withParams(params, {
+                    sort: event.target.value === 'recent' ? null : event.target.value,
+                  }),
+                )
               }
               className="h-10 rounded-full border border-line bg-surface px-3 text-sm text-ink shadow-soft focus:border-accent/60 focus:outline-none"
             >
@@ -223,9 +275,10 @@ export function CrawlPagesPage() {
           >
             <span>Chanson</span>
             <span>Statut</span>
-            <span>Collectée</span>
+            <span title="Date du contenu enregistré (collecte ou dernière modification détectée)">
+              Version du
+            </span>
             <span>Vérifiée</span>
-            <span>Modifiée</span>
             <span className="text-right">Mise à jour</span>
           </div>
           {pages.data ? (

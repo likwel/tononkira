@@ -19,7 +19,12 @@ type Params = Record<string, string | number | null | undefined>;
 
 async function call<T>(
   path: string,
-  { method = 'GET', body, params, token = getAdminToken() }: {
+  {
+    method = 'GET',
+    body,
+    params,
+    token = getAdminToken(),
+  }: {
     method?: 'GET' | 'POST';
     body?: unknown;
     params?: Params;
@@ -40,9 +45,9 @@ async function call<T>(
   } catch {
     throw new ApiError(0, "Impossible de joindre l'API. Est-elle démarrée ?");
   }
-  const json = (await response.json().catch(() => null)) as
-    | { error?: { message?: string; details?: { field: string; message: string }[] } }
-    | null;
+  const json = (await response.json().catch(() => null)) as {
+    error?: { message?: string; details?: { field: string; message: string }[] };
+  } | null;
   if (!response.ok) {
     // Jeton enregistré refusé : retour à l'écran de connexion.
     if (response.status === 401 && token === getAdminToken()) clearAdminToken();
@@ -74,7 +79,8 @@ export const adminApi = {
       (r) => r.data,
     ),
 
-  jobs: (params: { page?: number; limit?: number }) => call<AdminPage<JobRecord>>('/jobs', { params }),
+  jobs: (params: { page?: number; limit?: number }) =>
+    call<AdminPage<JobRecord>>('/jobs', { params }),
 
   job: (id: number) => call<{ data: JobRecord | JobSnapshot }>(`/jobs/${id}`).then((r) => r.data),
 

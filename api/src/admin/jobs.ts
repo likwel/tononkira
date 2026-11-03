@@ -74,7 +74,11 @@ export interface JobStore {
 export interface FileImporter {
   importFile(
     path: string,
-    options: { onProgress: (report: ImportReport) => void; signal: AbortSignal; logger: ImportLogger },
+    options: {
+      onProgress: (report: ImportReport) => void;
+      signal: AbortSignal;
+      logger: ImportLogger;
+    },
   ): Promise<ImportReport>;
 }
 
@@ -141,7 +145,11 @@ export class JobRunner {
 
   async start(type: JobType, options: JobOptions): Promise<JobSnapshot> {
     if (this.running || this.starting) {
-      throw new HttpError(409, 'job_running', 'Une tâche est déjà en cours : attendez sa fin ou arrêtez-la.');
+      throw new HttpError(
+        409,
+        'job_running',
+        'Une tâche est déjà en cours : attendez sa fin ou arrêtez-la.',
+      );
     }
     this.starting = true;
     let created: { id: number; startedAt: Date };
@@ -214,7 +222,8 @@ export class JobRunner {
     snapshot.status = status;
     snapshot.finishedAt = new Date().toISOString();
     snapshot.progress = status === 'succeeded' ? null : snapshot.progress;
-    if (status === 'cancelled') this.log(job, 'Tâche arrêtée. Relancer reprend là où elle s’est arrêtée.');
+    if (status === 'cancelled')
+      this.log(job, 'Tâche arrêtée. Relancer reprend là où elle s’est arrêtée.');
     try {
       await this.deps.store.finish(
         snapshot.id,
@@ -257,7 +266,11 @@ export class JobRunner {
         }
         break;
       case 'list_page': {
-        snapshot.progress = { phase: 'lists', current: num(event, 'page'), total: numOrNull(event, 'last') };
+        snapshot.progress = {
+          phase: 'lists',
+          current: num(event, 'page'),
+          total: numOrNull(event, 'last'),
+        };
         const lists = snapshot.summary.lists ?? { pages: 0, found: 0, new: 0 };
         snapshot.summary.lists = {
           pages: lists.pages + 1,
@@ -267,12 +280,20 @@ export class JobRunner {
         break;
       }
       case 'lists_done':
-        snapshot.summary.lists = { pages: num(event, 'pages'), found: num(event, 'found'), new: num(event, 'new') };
+        snapshot.summary.lists = {
+          pages: num(event, 'pages'),
+          found: num(event, 'found'),
+          new: num(event, 'new'),
+        };
         break;
       case 'song':
       case 'songs_done':
         if (event.event === 'song') {
-          snapshot.progress = { phase: 'songs', current: num(event, 'index'), total: num(event, 'total') };
+          snapshot.progress = {
+            phase: 'songs',
+            current: num(event, 'index'),
+            total: num(event, 'total'),
+          };
         }
         snapshot.summary.songs = {
           total: num(event, 'total'),
@@ -284,7 +305,11 @@ export class JobRunner {
       case 'recheck':
       case 'recheck_done':
         if (event.event === 'recheck') {
-          snapshot.progress = { phase: 'recheck', current: num(event, 'index'), total: num(event, 'total') };
+          snapshot.progress = {
+            phase: 'recheck',
+            current: num(event, 'index'),
+            total: num(event, 'total'),
+          };
         }
         snapshot.summary.recheck = {
           total: num(event, 'total'),
@@ -297,7 +322,11 @@ export class JobRunner {
         break;
       case 'exported':
         snapshot.summary.exported = num(event, 'count');
-        snapshot.progress = { phase: 'export', current: num(event, 'count'), total: num(event, 'count') };
+        snapshot.progress = {
+          phase: 'export',
+          current: num(event, 'count'),
+          total: num(event, 'count'),
+        };
         break;
     }
   }

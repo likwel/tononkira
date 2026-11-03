@@ -121,7 +121,9 @@ export class PrismaSongLibrary implements SongLibrary {
       where: { sourceUrl: { in: urls } },
       select: { sourceUrl: true, artistSlug: true, slug: true },
     });
-    return new Map(rows.map((row) => [row.sourceUrl, { artistSlug: row.artistSlug, slug: row.slug }]));
+    return new Map(
+      rows.map((row) => [row.sourceUrl, { artistSlug: row.artistSlug, slug: row.slug }]),
+    );
   }
 
   importSong(raw: unknown) {
@@ -136,7 +138,10 @@ export class PrismaSongLibrary implements SongLibrary {
 export class PrismaFileImporter implements FileImporter {
   constructor(private readonly db: PrismaClient) {}
 
-  importFile(path: string, { onProgress, signal, logger }: Parameters<FileImporter['importFile']>[1]) {
+  importFile(
+    path: string,
+    { onProgress, signal, logger }: Parameters<FileImporter['importFile']>[1],
+  ) {
     const lines = createInterface({ input: createReadStream(path, 'utf8'), crlfDelay: Infinity });
     return importSongs(this.db, lines, logger, { onProgress, signal, progressEvery: 200 });
   }

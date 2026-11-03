@@ -61,7 +61,10 @@ export class FakeCrawlState implements CrawlStateSource {
   }
 
   listPages(): Page<ListPageRow> {
-    return { items: [{ page: 9, songCount: 20, fetchedAt: '2026-10-29T07:00:00+00:00' }], total: 1 };
+    return {
+      items: [{ page: 9, songCount: 20, fetchedAt: '2026-10-29T07:00:00+00:00' }],
+      total: 1,
+    };
   }
 }
 

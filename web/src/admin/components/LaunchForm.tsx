@@ -9,12 +9,14 @@ const MODES: { type: JobType; title: string; description: string }[] = [
   {
     type: 'crawl',
     title: 'Collecte',
-    description: 'Lit les pages de liste choisies, puis récupère les paroles des chansons en attente.',
+    description:
+      'Lit les pages de liste choisies, puis récupère les paroles des chansons en attente.',
   },
   {
     type: 'update',
     title: 'Nouveautés',
-    description: "Relit les listes depuis la page 1 jusqu'à une page sans nouveauté, puis collecte.",
+    description:
+      "Relit les listes depuis la page 1 jusqu'à une page sans nouveauté, puis collecte.",
   },
   {
     type: 'recheck',
@@ -63,7 +65,15 @@ function NumberField(props: {
   );
 }
 
-function Check({ checked, onChange, children }: { checked: boolean; onChange: (value: boolean) => void; children: ReactNode }) {
+function Check({
+  checked,
+  onChange,
+  children,
+}: {
+  checked: boolean;
+  onChange: (value: boolean) => void;
+  children: ReactNode;
+}) {
   return (
     <label className="flex cursor-pointer items-start gap-2.5 text-sm text-ink-soft">
       <input
@@ -82,7 +92,15 @@ const toNumber = (value: string) => (value.trim() === '' ? undefined : Number(va
 /** Options envoyées à l'API, selon le type de tâche (les champs vides sont omis). */
 export function buildOptions(
   type: JobType,
-  form: { from: string; to: string; limit: string; delay: string; retryErrors: boolean; refreshLists: boolean; importAfter: boolean },
+  form: {
+    from: string;
+    to: string;
+    limit: string;
+    delay: string;
+    retryErrors: boolean;
+    refreshLists: boolean;
+    importAfter: boolean;
+  },
 ): JobOptions {
   const options: JobOptions = {};
   const set = <K extends keyof JobOptions>(key: K, value: JobOptions[K] | undefined) => {
@@ -115,8 +133,10 @@ export function LaunchForm({ disabled }: { disabled: boolean }) {
     refreshLists: false,
     importAfter: true,
   });
-  const update = <K extends keyof typeof form>(key: K) => (value: (typeof form)[K]) =>
-    setForm((current) => ({ ...current, [key]: value }));
+  const update =
+    <K extends keyof typeof form>(key: K) =>
+    (value: (typeof form)[K]) =>
+      setForm((current) => ({ ...current, [key]: value }));
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -124,7 +144,10 @@ export function LaunchForm({ disabled }: { disabled: boolean }) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="rounded-3xl border border-line bg-surface p-5 shadow-soft sm:p-6">
+    <form
+      onSubmit={onSubmit}
+      className="rounded-3xl border border-line bg-surface p-5 shadow-soft sm:p-6"
+    >
       <h2 className="font-serif text-xl font-semibold tracking-tight">Lancer une tâche</h2>
 
       <fieldset className="mt-4">
@@ -135,7 +158,9 @@ export function LaunchForm({ disabled }: { disabled: boolean }) {
               key={mode.type}
               className={cx(
                 'cursor-pointer rounded-2xl border p-3 transition-colors',
-                type === mode.type ? 'border-accent bg-accent-soft/50 ring-1 ring-accent' : 'border-line hover:border-accent/40',
+                type === mode.type
+                  ? 'border-accent bg-accent-soft/50 ring-1 ring-accent'
+                  : 'border-line hover:border-accent/40',
               )}
             >
               <input
@@ -147,7 +172,9 @@ export function LaunchForm({ disabled }: { disabled: boolean }) {
                 className="sr-only"
               />
               <span className="block text-sm font-semibold text-ink">{mode.title}</span>
-              <span className="mt-0.5 block text-xs leading-snug text-muted">{mode.description}</span>
+              <span className="mt-0.5 block text-xs leading-snug text-muted">
+                {mode.description}
+              </span>
             </label>
           ))}
         </div>
@@ -156,9 +183,26 @@ export function LaunchForm({ disabled }: { disabled: boolean }) {
       <div className="mt-5 space-y-4">
         {type === 'crawl' && (
           <div className="grid grid-cols-3 gap-3">
-            <NumberField id="job-from" label="De la page" value={form.from} onChange={update('from')} />
-            <NumberField id="job-to" label="À la page" value={form.to} onChange={update('to')} placeholder="fin" />
-            <NumberField id="job-limit" label="Chansons max." value={form.limit} onChange={update('limit')} placeholder="toutes" />
+            <NumberField
+              id="job-from"
+              label="De la page"
+              value={form.from}
+              onChange={update('from')}
+            />
+            <NumberField
+              id="job-to"
+              label="À la page"
+              value={form.to}
+              onChange={update('to')}
+              placeholder="fin"
+            />
+            <NumberField
+              id="job-limit"
+              label="Chansons max."
+              value={form.limit}
+              onChange={update('limit')}
+              placeholder="toutes"
+            />
           </div>
         )}
         {type === 'recheck' && (
@@ -194,7 +238,8 @@ export function LaunchForm({ disabled }: { disabled: boolean }) {
         )}
         {type !== 'import' && (
           <Check checked={form.importAfter} onChange={update('importAfter')}>
-            Importer dans la base à la fin <span className="text-muted">(mise à jour, sans suppression)</span>
+            Importer dans la base à la fin{' '}
+            <span className="text-muted">(mise à jour, sans suppression)</span>
           </Check>
         )}
       </div>
@@ -205,7 +250,11 @@ export function LaunchForm({ disabled }: { disabled: boolean }) {
         </p>
       )}
 
-      <button type="submit" className={cx(buttonPrimary, 'mt-5 w-full')} disabled={disabled || start.isPending}>
+      <button
+        type="submit"
+        className={cx(buttonPrimary, 'mt-5 w-full')}
+        disabled={disabled || start.isPending}
+      >
         {start.isPending ? (
           <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
         ) : (

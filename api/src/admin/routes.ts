@@ -54,10 +54,13 @@ const jobBody = z
       .strict()
       .default({}),
   })
-  .refine((body) => !(body.options.from && body.options.to && body.options.to < body.options.from), {
-    message: 'la dernière page doit suivre la première',
-    path: ['options', 'to'],
-  });
+  .refine(
+    (body) => !(body.options.from && body.options.to && body.options.to < body.options.from),
+    {
+      message: 'la dernière page doit suivre la première',
+      path: ['options', 'to'],
+    },
+  );
 
 const noStore: RequestHandler = (_req, res, next) => {
   res.set('Cache-Control', 'no-store');
@@ -71,7 +74,11 @@ export function assertSongUrl(raw: string): string {
   } catch {
     throw HttpError.badRequest('URL invalide');
   }
-  if (url.protocol !== 'https:' || !SOURCE_HOSTS.includes(url.host) || !url.pathname.startsWith('/hira/')) {
+  if (
+    url.protocol !== 'https:' ||
+    !SOURCE_HOSTS.includes(url.host) ||
+    !url.pathname.startsWith('/hira/')
+  ) {
     throw HttpError.badRequest(
       `Seules les pages de chansons de ${SOURCE_HOSTS.join(', ')} peuvent être vérifiées`,
     );
@@ -116,7 +123,11 @@ export function createAdminRouter(deps: AdminDeps): Router {
     });
     const outcome = result as PythonEvent | null;
     if (!outcome) {
-      throw new HttpError(502, 'refresh_failed', `La vérification a échoué. ${logs.at(-1) ?? ''}`.trim());
+      throw new HttpError(
+        502,
+        'refresh_failed',
+        `La vérification a échoué. ${logs.at(-1) ?? ''}`.trim(),
+      );
     }
     const status = String(outcome.status);
     const imported =
@@ -152,7 +163,17 @@ export function createAdminRouter(deps: AdminDeps): Router {
     let listed: PythonEvent | null = null;
     const logs: string[] = [];
     const { code } = await deps.python.run(
-      ['crawl', '--from', String(number), '--to', String(number), '--lists-only', '--refresh-lists', '--no-export', '--events'],
+      [
+        'crawl',
+        '--from',
+        String(number),
+        '--to',
+        String(number),
+        '--lists-only',
+        '--refresh-lists',
+        '--no-export',
+        '--events',
+      ],
       {
         onEvent: (event) => {
           if (event.event === 'list_page') listed = event;
@@ -162,7 +183,11 @@ export function createAdminRouter(deps: AdminDeps): Router {
     );
     const outcome = listed as PythonEvent | null;
     if (code !== 0) {
-      throw new HttpError(502, 'refresh_failed', `La relecture a échoué. ${logs.at(-1) ?? ''}`.trim());
+      throw new HttpError(
+        502,
+        'refresh_failed',
+        `La relecture a échoué. ${logs.at(-1) ?? ''}`.trim(),
+      );
     }
     res.json({
       data: {
@@ -203,7 +228,8 @@ export function createAdminRouter(deps: AdminDeps): Router {
 
   router.post('/jobs/:id/cancel', (req, res) => {
     const id = parseQuery(pageNumber, req.params.id);
-    if (!deps.jobs.cancel(id)) throw new HttpError(409, 'not_running', "Cette tâche n'est pas en cours");
+    if (!deps.jobs.cancel(id))
+      throw new HttpError(409, 'not_running', "Cette tâche n'est pas en cours");
     res.status(202).json({ data: { id, cancelling: true } });
   });
 

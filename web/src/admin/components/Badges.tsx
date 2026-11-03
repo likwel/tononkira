@@ -12,7 +12,15 @@ const TONE: Record<Tone, string> = {
   running: 'bg-accent-soft text-accent',
 };
 
-export function Badge({ tone, children, title }: { tone: Tone; children: React.ReactNode; title?: string | undefined }) {
+export function Badge({
+  tone,
+  children,
+  title,
+}: {
+  tone: Tone;
+  children: React.ReactNode;
+  title?: string | undefined;
+}) {
   return (
     <span
       title={title}
@@ -26,9 +34,20 @@ export function Badge({ tone, children, title }: { tone: Tone; children: React.R
   );
 }
 
-const CRAWL_TONE: Record<CrawlStatus, Tone> = { done: 'ok', pending: 'muted', error: 'error', gone: 'muted' };
+const CRAWL_TONE: Record<CrawlStatus, Tone> = {
+  done: 'ok',
+  pending: 'muted',
+  error: 'error',
+  gone: 'muted',
+};
 
-export function CrawlStatusBadge({ status, error }: { status: CrawlStatus; error?: string | null }) {
+export function CrawlStatusBadge({
+  status,
+  error,
+}: {
+  status: CrawlStatus;
+  error?: string | null;
+}) {
   return (
     <Badge tone={CRAWL_TONE[status]} title={error ?? undefined}>
       {CRAWL_STATUS_LABEL[status]}

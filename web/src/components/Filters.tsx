@@ -63,7 +63,7 @@ export function SegmentedLinks<T extends string>({
                 to={hrefFor(option.value)}
                 aria-current={selected ? 'true' : undefined}
                 className={cx(
-                  'inline-flex h-8 items-center rounded-full px-4 text-sm font-medium transition-colors',
+                  'inline-flex h-8 items-center rounded-full px-4 text-sm font-medium whitespace-nowrap transition-colors',
                   selected
                     ? 'bg-accent text-accent-ink shadow-soft'
                     : 'text-ink-soft hover:text-ink',

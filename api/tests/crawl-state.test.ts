@@ -44,13 +44,29 @@ beforeEach(() => {
       data: JSON.stringify({ scraped_at: 'S1', artists: [{ slug: 'magma', name: 'MAGMA' }] }),
       updated_at: '2026-10-29T08:00:00+00:00',
       checked_at: '2026-10-29T08:00:00+00:00',
+      changed_at: '2026-10-29T08:00:00+00:00',
     }),
   );
-  insert.run(song('https://x/hira/magma/anatra-ihany', 'done', { updated_at: '2026-10-29T07:00:00+00:00' }));
+  insert.run(
+    song('https://x/hira/magma/anatra-ihany', 'done', {
+      updated_at: '2026-10-29T07:00:00+00:00',
+      changed_at: '2026-10-29T07:00:00+00:00',
+    }),
+  );
   insert.run(song('https://x/hira/naina/100%_fitiavana', 'pending', { artist_slug: 'naina' }));
   insert.run(song('https://x/hira/naina/tsy-hita', 'error', { error: 'HTTP 500', attempts: 2 }));
-  db.prepare('INSERT INTO list_pages VALUES (?, ?, ?, ?)').run('serasera', 9, 20, '2026-10-29T06:00:00+00:00');
-  db.prepare('INSERT INTO list_pages VALUES (?, ?, ?, ?)').run('serasera', 1, 20, '2026-10-29T05:00:00+00:00');
+  db.prepare('INSERT INTO list_pages VALUES (?, ?, ?, ?)').run(
+    'serasera',
+    9,
+    20,
+    '2026-10-29T06:00:00+00:00',
+  );
+  db.prepare('INSERT INTO list_pages VALUES (?, ?, ?, ?)').run(
+    'serasera',
+    1,
+    20,
+    '2026-10-29T05:00:00+00:00',
+  );
   db.prepare('INSERT INTO meta VALUES (?, ?)').run('serasera:last_page', '884');
   db.close();
 });
@@ -72,7 +88,11 @@ describe('SqliteCrawlState', () => {
   });
 
   it('liste les pages collectées, les plus récentes d’abord, avec leurs dates', () => {
-    const { items, total } = new SqliteCrawlState(file).songs({ page: 1, limit: 10, sort: 'recent' });
+    const { items, total } = new SqliteCrawlState(file).songs({
+      page: 1,
+      limit: 10,
+      sort: 'recent',
+    });
     expect(total).toBe(4);
     expect(items[0]).toMatchObject({
       slug: 'potika',
@@ -85,7 +105,9 @@ describe('SqliteCrawlState', () => {
 
   it('filtre par statut et par texte, jokers SQL compris littéralement', () => {
     const state = new SqliteCrawlState(file);
-    expect(state.songs({ page: 1, limit: 10, sort: 'recent', status: 'error' }).items[0]).toMatchObject({
+    expect(
+      state.songs({ page: 1, limit: 10, sort: 'recent', status: 'error' }).items[0],
+    ).toMatchObject({
       slug: 'tsy-hita',
       error: 'HTTP 500',
       attempts: 2,
@@ -96,8 +118,23 @@ describe('SqliteCrawlState', () => {
   });
 
   it('trie « à revérifier » : jamais vérifiées d’abord', () => {
-    const { items } = new SqliteCrawlState(file).songs({ page: 1, limit: 10, sort: 'stale', status: 'done' });
+    const { items } = new SqliteCrawlState(file).songs({
+      page: 1,
+      limit: 10,
+      sort: 'stale',
+      status: 'done',
+    });
     expect(items.map((item) => item.slug)).toEqual(['anatra-ihany', 'potika']);
+  });
+
+  it('trie « modifiées récemment » : dernière version enregistrée d’abord', () => {
+    const { items } = new SqliteCrawlState(file).songs({ page: 1, limit: 10, sort: 'changed' });
+    expect(items.map((item) => item.slug)).toEqual([
+      'potika',
+      'anatra-ihany',
+      'tsy-hita',
+      '100%_fitiavana',
+    ]);
   });
 
   it('liste les pages de liste dans l’ordre', () => {

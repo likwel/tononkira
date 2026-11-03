@@ -44,9 +44,13 @@ export function AdminLayout() {
             </ul>
           </nav>
           <div className="ml-auto flex items-center gap-1">
-            <Link to="/" className={cx(buttonGhost, 'hidden sm:inline-flex')}>
+            {/* max-sm:hidden plutôt que hidden : buttonGhost porte déjà un display. */}
+            <Link to="/" className={cx(buttonGhost, 'max-sm:hidden')}>
               <ExternalLink className="size-4" aria-hidden="true" />
               Voir le site
+            </Link>
+            <Link to="/" className={cx(iconButton, 'sm:hidden')} aria-label="Voir le site">
+              <ExternalLink className="size-5" aria-hidden="true" />
             </Link>
             <ThemeToggle />
             <button

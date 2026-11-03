@@ -9,7 +9,7 @@ import type { Page } from '../catalog.js';
 
 export const CRAWL_STATUSES = ['pending', 'done', 'error', 'gone'] as const;
 export type CrawlStatus = (typeof CRAWL_STATUSES)[number];
-export const CRAWL_SORTS = ['recent', 'stale', 'title'] as const;
+export const CRAWL_SORTS = ['recent', 'changed', 'stale', 'title'] as const;
 export type CrawlSort = (typeof CRAWL_SORTS)[number];
 
 export interface CrawlStats {
@@ -65,6 +65,8 @@ type Row = Record<string, unknown>;
 
 const SONG_ORDER: Record<CrawlSort, string> = {
   recent: 'updated_at DESC, rowid DESC',
+  // Dernières versions enregistrées (première collecte ou modification détectée).
+  changed: 'changed_at IS NULL, changed_at DESC, rowid DESC',
   // Jamais vérifiées d'abord, puis les vérifications les plus anciennes.
   stale: 'checked_at IS NOT NULL, checked_at, updated_at, rowid',
   title: 'title COLLATE NOCASE, rowid',
@@ -184,8 +186,11 @@ export class SqliteCrawlState implements CrawlStateSource {
   listPages({ page, limit }: { page: number; limit: number }): Page<ListPageRow> {
     return this.read({ items: [], total: 0 }, (db) => {
       const total = Number(
-        (db.prepare('SELECT COUNT(*) AS n FROM list_pages WHERE source = ?').get(this.source) as Row)
-          .n,
+        (
+          db
+            .prepare('SELECT COUNT(*) AS n FROM list_pages WHERE source = ?')
+            .get(this.source) as Row
+        ).n,
       );
       const rows = db
         .prepare(

@@ -46,7 +46,10 @@ export function LoginPage() {
           Saisissez le jeton défini dans <code className="text-ink-soft">ADMIN_TOKEN</code> (fichier{' '}
           <code className="text-ink-soft">api/.env</code>).
         </p>
-        <label htmlFor="admin-token" className="mt-6 mb-1.5 block text-sm font-medium text-ink-soft">
+        <label
+          htmlFor="admin-token"
+          className="mt-6 mb-1.5 block text-sm font-medium text-ink-soft"
+        >
           Jeton d'administration
         </label>
         <input
@@ -65,7 +68,11 @@ export function LoginPage() {
             {error}
           </p>
         )}
-        <button type="submit" disabled={pending || !token.trim()} className={cx(buttonPrimary, 'mt-6 w-full')}>
+        <button
+          type="submit"
+          disabled={pending || !token.trim()}
+          className={cx(buttonPrimary, 'mt-6 w-full')}
+        >
           {pending && <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />}
           Se connecter
         </button>

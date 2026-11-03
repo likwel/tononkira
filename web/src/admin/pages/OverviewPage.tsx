@@ -47,7 +47,8 @@ export function OverviewPage() {
   const overview = useOverview();
   const jobs = useJobs(1, 5);
 
-  if (overview.isError) return <ErrorState error={overview.error} onRetry={() => overview.refetch()} />;
+  if (overview.isError)
+    return <ErrorState error={overview.error} onRetry={() => overview.refetch()} />;
   const data = overview.data;
   const running = data?.job?.status === 'running';
   const crawl = data?.crawl;
@@ -68,7 +69,11 @@ export function OverviewPage() {
           hint={crawl ? `sur ${formatNumber(crawl.total)} repérées` : undefined}
           to="/admin/pages?status=done"
         />
-        <Stat label="En attente" value={crawl?.pending ?? (data ? 0 : '…')} to="/admin/pages?status=pending" />
+        <Stat
+          label="En attente"
+          value={crawl?.pending ?? (data ? 0 : '…')}
+          to="/admin/pages?status=pending"
+        />
         <Stat
           label="Erreurs"
           value={crawl?.error ?? (data ? 0 : '…')}
@@ -78,16 +83,26 @@ export function OverviewPage() {
         />
         <Stat
           label="Pages de liste"
-          value={crawl ? `${formatNumber(crawl.listPages)}${crawl.lastPage ? ` / ${formatNumber(crawl.lastPage)}` : ''}` : data ? 0 : '…'}
-          hint={crawl?.lastListFetchedAt ? `dernière lecture ${timeAgo(crawl.lastListFetchedAt)}` : undefined}
+          value={
+            crawl
+              ? `${formatNumber(crawl.listPages)}${crawl.lastPage ? ` / ${formatNumber(crawl.lastPage)}` : ''}`
+              : data
+                ? 0
+                : '…'
+          }
+          hint={
+            crawl?.lastListFetchedAt
+              ? `dernière lecture ${timeAgo(crawl.lastListFetchedAt)}`
+              : undefined
+          }
           to="/admin/listes"
         />
       </div>
 
       <div className="mt-8 grid items-start gap-6 lg:grid-cols-5">
         <div className="space-y-6 lg:col-span-3">
-          {data?.job ? (
-            <JobPanel job={data.job} />
+          {data?.job || jobs.data?.data[0] ? (
+            <JobPanel job={(data?.job ?? jobs.data?.data[0])!} />
           ) : (
             <EmptyState icon={History} title="Aucune tâche en cours" className="bg-surface/50">
               {crawl
@@ -99,20 +114,29 @@ export function OverviewPage() {
           <section className="rounded-3xl border border-line bg-surface p-5 shadow-soft sm:p-6">
             <div className="mb-3 flex items-center justify-between">
               <h2 className="font-serif text-xl font-semibold tracking-tight">Dernières tâches</h2>
-              <Link to="/admin/taches" className="inline-flex items-center gap-0.5 text-sm font-medium text-accent">
+              <Link
+                to="/admin/taches"
+                className="inline-flex items-center gap-0.5 text-sm font-medium text-accent"
+              >
                 Historique <ChevronRight className="size-4" aria-hidden="true" />
               </Link>
             </div>
             {jobs.data?.data.length ? (
               <ul className="divide-y divide-line/70">
                 {jobs.data.data.map((job) => (
-                  <li key={job.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-3 text-sm">
+                  <li
+                    key={job.id}
+                    className="flex flex-wrap items-center gap-x-3 gap-y-1 py-3 text-sm"
+                  >
                     <span className="font-medium text-ink">
                       {JOB_LABEL[job.type]} <span className="text-muted">#{job.id}</span>
                     </span>
                     <JobStatusBadge status={job.status} />
                     <span className="text-muted">{describeOptions(job.type, job.options)}</span>
-                    <span className="ml-auto text-xs text-muted" title={formatDateTime(job.startedAt)}>
+                    <span
+                      className="ml-auto text-xs text-muted"
+                      title={formatDateTime(job.startedAt)}
+                    >
                       {timeAgo(job.startedAt)}
                     </span>
                   </li>

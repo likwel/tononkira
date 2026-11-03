@@ -31,7 +31,9 @@ async function* lines(...values: string[]) {
 }
 
 beforeEach(async () => {
-  await db.$executeRawUnsafe('TRUNCATE song_artists, songs, artists, crawl_jobs RESTART IDENTITY CASCADE');
+  await db.$executeRawUnsafe(
+    'TRUNCATE song_artists, songs, artists, crawl_jobs RESTART IDENTITY CASCADE',
+  );
 });
 
 afterAll(() => db.$disconnect());
@@ -40,24 +42,40 @@ describe('import JSONL (mise à jour par URL source)', () => {
   it('crée, met à jour, saute l’inchangé et ne supprime jamais rien', async () => {
     const first = await importSongs(db, lines(line('potika'), line('anatra-ihany')), silent);
     expect(first).toMatchObject({ created: 2, updated: 0, unchanged: 0 });
-    const before = await db.song.findUniqueOrThrow({ where: { sourceUrl: 'https://tononkira.serasera.org/hira/magma/anatra-ihany' } });
+    const before = await db.song.findUniqueOrThrow({
+      where: { sourceUrl: 'https://tononkira.serasera.org/hira/magma/anatra-ihany' },
+    });
 
     // Deuxième fichier : potika absente, anatra-ihany modifiée, niserana nouvelle.
     const second = await importSongs(
       db,
       lines(
-        line('anatra-ihany', { title: 'Anatra ihany', views: 9, artists: [{ slug: 'magma', name: 'MAGMA' }, { slug: 'naina', name: 'NAINA' }] }),
+        line('anatra-ihany', {
+          title: 'Anatra ihany',
+          views: 9,
+          artists: [
+            { slug: 'magma', name: 'MAGMA' },
+            { slug: 'naina', name: 'NAINA' },
+          ],
+        }),
         line('niserana'),
       ),
       silent,
     );
     expect(second).toMatchObject({ created: 1, updated: 1, unchanged: 0, failed: 0 });
 
-    const songs = await db.song.findMany({ orderBy: { id: 'asc' }, select: { id: true, slug: true, title: true, views: true } });
+    const songs = await db.song.findMany({
+      orderBy: { id: 'asc' },
+      select: { id: true, slug: true, title: true, views: true },
+    });
     expect(songs.map((song) => song.slug)).toEqual(['potika', 'anatra-ihany', 'niserana']);
     const updated = songs.find((song) => song.slug === 'anatra-ihany')!;
     expect(updated).toMatchObject({ id: before.id, title: 'Anatra ihany', views: 9 });
-    const links = await db.songArtist.findMany({ where: { songId: before.id }, orderBy: { position: 'asc' }, include: { artist: true } });
+    const links = await db.songArtist.findMany({
+      where: { songId: before.id },
+      orderBy: { position: 'asc' },
+      include: { artist: true },
+    });
     expect(links.map((link) => link.artist.slug)).toEqual(['magma', 'naina']);
 
     const third = await importSongs(db, lines(line('niserana')), silent);
