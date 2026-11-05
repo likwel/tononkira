@@ -46,6 +46,7 @@ model Song {
   /// Empreinte du contenu importé : une ligne identique à la base n'est pas réécrite.
   contentHash String?      @map("content_hash")
   artists     SongArtist[]
+  edits       LyricEdit[]
   createdAt   DateTime     @default(now()) @map("created_at")
   updatedAt   DateTime     @updatedAt @map("updated_at")
 
@@ -68,6 +69,28 @@ model SongArtist {
   @@id([songId, artistId])
   @@index([artistId])
   @@map("song_artists")
+}
+
+/// Correction des paroles proposée depuis le site, publiée après validation dans l'administration.
+model LyricEdit {
+  id         Int       @id @default(autoincrement())
+  songId     Int       @map("song_id")
+  song       Song      @relation(fields: [songId], references: [id], onDelete: Cascade)
+  lyrics     String
+  /// Paroles au moment de la proposition : sert à afficher ce qui change.
+  baseLyrics String    @map("base_lyrics")
+  /// Message de la personne qui propose (ce qu'elle a corrigé).
+  note       String?
+  /// Nom ou pseudonyme, facultatif.
+  author     String?
+  /// pending | approved | rejected
+  status     String    @default("pending")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  reviewedAt DateTime? @map("reviewed_at")
+
+  @@index([status, createdAt])
+  @@index([songId])
+  @@map("lyric_edits")
 }
 
 /// Historique des tâches lancées depuis l'administration (collecte, mise à jour, import…).

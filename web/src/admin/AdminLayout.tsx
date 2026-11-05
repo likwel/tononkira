@@ -5,9 +5,11 @@ import { ThemeToggle } from '../components/ThemeToggle';
 import { buttonGhost, cx, iconButton } from '../components/ui';
 import { clearAdminToken, useAdminToken } from './auth';
 import { LoginPage } from './pages/LoginPage';
+import { useOverview } from './queries';
 
 const TABS = [
   { to: '/admin', label: "Vue d'ensemble", end: true },
+  { to: '/admin/corrections', label: 'Corrections', end: false, badge: true },
   { to: '/admin/pages', label: 'Pages collectées', end: false },
   { to: '/admin/listes', label: 'Pages de liste', end: false },
   { to: '/admin/taches', label: 'Historique des tâches', end: false },
@@ -15,9 +17,34 @@ const TABS = [
 
 const tabClass = ({ isActive }: { isActive: boolean }) =>
   cx(
-    'shrink-0 rounded-full px-3.5 py-2 text-sm font-medium whitespace-nowrap transition-colors',
+    'inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium whitespace-nowrap transition-colors',
     isActive ? 'bg-surface-2 text-ink' : 'text-ink-soft hover:text-ink',
   );
+
+/** Nombre de corrections en attente, pour que l'onglet le signale. */
+function AdminTabs() {
+  const overview = useOverview();
+  const pending = overview.data?.pendingEdits ?? 0;
+  return (
+    <>
+      {TABS.map((tab) => (
+        <li key={tab.to}>
+          <NavLink to={tab.to} end={tab.end} className={tabClass}>
+            {tab.label}
+            {tab.badge && pending > 0 && (
+              <span
+                className="grid min-w-5 place-items-center rounded-full bg-accent px-1.5 text-xs font-semibold text-accent-ink"
+                aria-label={`${pending} en attente`}
+              >
+                {pending}
+              </span>
+            )}
+          </NavLink>
+        </li>
+      ))}
+    </>
+  );
+}
 
 export function AdminLayout() {
   const token = useAdminToken();
@@ -34,13 +61,7 @@ export function AdminLayout() {
           </span>
           <nav aria-label="Administration" className="ml-4 hidden lg:block">
             <ul className="flex items-center gap-1">
-              {TABS.map((tab) => (
-                <li key={tab.to}>
-                  <NavLink to={tab.to} end={tab.end} className={tabClass}>
-                    {tab.label}
-                  </NavLink>
-                </li>
-              ))}
+              <AdminTabs />
             </ul>
           </nav>
           <div className="ml-auto flex items-center gap-1">
@@ -66,13 +87,7 @@ export function AdminLayout() {
         </div>
         <nav aria-label="Administration" className="border-t border-line/60 lg:hidden">
           <ul className="no-scrollbar container-page flex gap-1 overflow-x-auto py-2">
-            {TABS.map((tab) => (
-              <li key={tab.to}>
-                <NavLink to={tab.to} end={tab.end} className={tabClass}>
-                  {tab.label}
-                </NavLink>
-              </li>
-            ))}
+            <AdminTabs />
           </ul>
         </nav>
       </header>
@@ -83,11 +98,21 @@ export function AdminLayout() {
   );
 }
 
-export function AdminHeading({ title, children }: { title: string; children?: React.ReactNode }) {
+export function AdminHeading({
+  title,
+  subtitle,
+  children,
+}: {
+  title: string;
+  /** Une phrase qui dit à quoi sert la page : l'écran s'explique sans documentation. */
+  subtitle?: string;
+  children?: React.ReactNode;
+}) {
   return (
     <div className="mb-8 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
       <div>
         <h1 className="font-serif text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h1>
+        {subtitle && <p className="mt-1.5 max-w-2xl text-sm text-muted text-pretty">{subtitle}</p>}
       </div>
       {children}
     </div>

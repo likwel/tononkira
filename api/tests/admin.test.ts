@@ -8,6 +8,7 @@ import {
   FakeCrawlState,
   FakeFileImporter,
   FakeLibrary,
+  FakeLyricEdits,
   FakePython,
   MemoryJobStore,
   TOKEN,
@@ -17,6 +18,7 @@ import { FakeCatalog } from './fake-catalog.js';
 let python: FakePython;
 let crawl: FakeCrawlState;
 let library: FakeLibrary;
+let edits: FakeLyricEdits;
 let jobs: JobRunner;
 let app: ReturnType<typeof createApp>;
 
@@ -33,7 +35,8 @@ function build(overrides: Partial<AdminDeps> = {}) {
     catalog,
     corsOrigins: ['http://localhost:5173'],
     rateLimitPerMinute: false,
-    admin: { token: TOKEN, catalog, crawl, jobs, jobStore, python, library, ...overrides },
+    edits,
+    admin: { token: TOKEN, catalog, crawl, jobs, jobStore, python, library, edits, ...overrides },
   });
 }
 
@@ -43,6 +46,7 @@ beforeEach(() => {
   python = new FakePython();
   crawl = new FakeCrawlState();
   library = new FakeLibrary();
+  edits = new FakeLyricEdits();
   app = build();
 });
 

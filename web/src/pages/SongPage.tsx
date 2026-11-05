@@ -8,19 +8,21 @@ import {
   Copy,
   Eye,
   Heart,
+  PencilLine,
   Printer,
   Share2,
   Volume2,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { FavoriteButton } from '../components/FavoriteButton';
+import { LyricsEditForm } from '../components/LyricsEditForm';
 import { ReadingMode } from '../components/ReadingMode';
 import { LyricsView } from '../components/LyricsView';
 import { LoadingLabel } from '../components/Skeletons';
 import { SongCard } from '../components/SongCard';
 import { EmptyState, ErrorState, isNotFound } from '../components/States';
-import { buttonSecondary, cx, iconButton } from '../components/ui';
+import { buttonGhost, buttonSecondary, cx, iconButton } from '../components/ui';
 import { useSong } from '../hooks/queries';
 import { artistPath } from '../lib/api';
 import { artistNames, formatDate, formatNumber } from '../lib/format';
@@ -107,6 +109,8 @@ function SongView({ song }: { song: SongDetail }) {
   const lyricsSize = useLyricsSize();
   const [flash, setFlash] = useFlash();
   const [reading, setReading] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const editAnchor = useRef<HTMLDivElement>(null);
 
   // Rubrique « Reprendre la lecture » de l'accueil.
   useEffect(() => recordView(song), [song.artistSlug, song.slug]);
@@ -289,8 +293,29 @@ function SongView({ song }: { song: SongDetail }) {
         </div>
       )}
 
-      <div className="mt-6 rounded-3xl border border-line bg-surface px-5 py-7 shadow-soft sm:px-12 sm:py-12 print:border-0 print:px-0 print:shadow-none">
-        <LyricsView lyrics={song.lyrics} size={lyricsSize.size} />
+      <div ref={editAnchor} className="scroll-mt-20">
+        {editing ? (
+          <LyricsEditForm song={song} onClose={() => setEditing(false)} />
+        ) : (
+          <>
+            <div className="mt-6 rounded-3xl border border-line bg-surface px-5 py-7 shadow-soft sm:px-12 sm:py-12 print:border-0 print:px-0 print:shadow-none">
+              <LyricsView lyrics={song.lyrics} size={lyricsSize.size} />
+            </div>
+            <div className="mt-4 flex justify-center print:hidden">
+              <button
+                type="button"
+                onClick={() => {
+                  setEditing(true);
+                  editAnchor.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+                }}
+                className={buttonGhost}
+              >
+                <PencilLine className="size-4" aria-hidden="true" />
+                Une faute ? Proposer une correction
+              </button>
+            </div>
+          </>
+        )}
       </div>
       {reading && <ReadingMode song={song} onClose={() => setReading(false)} />}
 

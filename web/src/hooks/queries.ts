@@ -1,6 +1,6 @@
-import { keepPreviousData, QueryClient, useQuery } from '@tanstack/react-query';
+import { keepPreviousData, QueryClient, useMutation, useQuery } from '@tanstack/react-query';
 import { api, ApiError } from '../lib/api';
-import type { ArtistSort, SongSort } from '../lib/types';
+import type { ArtistSort, LyricEditDraft, SongSort } from '../lib/types';
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -62,6 +62,13 @@ export function useArtist(slug: string) {
     queryKey: ['artist', slug],
     queryFn: ({ signal }) => api.artist(slug, signal),
     staleTime: 5 * 60_000,
+  });
+}
+
+/** Envoi d'une correction : rien n'est relu ensuite, les paroles ne changent qu'après validation. */
+export function useSubmitEdit(artistSlug: string, slug: string) {
+  return useMutation({
+    mutationFn: (draft: LyricEditDraft) => api.submitEdit(artistSlug, slug, draft),
   });
 }
 

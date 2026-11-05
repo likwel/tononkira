@@ -11,9 +11,11 @@ import type {
   JobType,
   ListPage,
   ListPageRefresh,
+  LyricEdit,
   Overview,
   RefreshResult,
 } from './types';
+import type { EditStatus } from '../lib/types';
 
 type Params = Record<string, string | number | null | undefined>;
 
@@ -90,4 +92,22 @@ export const adminApi = {
     ),
 
   cancelJob: (id: number) => call<unknown>(`/jobs/${id}/cancel`, { method: 'POST' }),
+
+  lyricEdits: (params: { page?: number; status?: EditStatus }) =>
+    call<AdminPage<LyricEdit>>('/lyric-edits', { params }),
+
+  /** `lyrics` permet de publier un texte retouché plutôt que celui proposé. */
+  reviewEdit: ({
+    id,
+    action,
+    lyrics,
+  }: {
+    id: number;
+    action: 'approve' | 'reject';
+    lyrics?: string;
+  }) =>
+    call<{ data: LyricEdit }>(`/lyric-edits/${id}/${action}`, {
+      method: 'POST',
+      body: lyrics === undefined ? {} : { lyrics },
+    }).then((r) => r.data),
 };

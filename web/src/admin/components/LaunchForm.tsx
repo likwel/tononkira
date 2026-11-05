@@ -1,4 +1,4 @@
-import { LoaderCircle, Play } from 'lucide-react';
+import { ChevronRight, LoaderCircle, Play } from 'lucide-react';
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { buttonPrimary, cx } from '../../components/ui';
 import { ApiError } from '../../lib/api';
@@ -216,31 +216,43 @@ export function LaunchForm({ disabled }: { disabled: boolean }) {
           />
         )}
         {type !== 'import' && (
-          <NumberField
-            id="job-delay"
-            label="Délai entre deux requêtes (s)"
-            value={form.delay}
-            onChange={update('delay')}
-            min={0.5}
-            step={0.5}
-            hint="Respect du site source : 1,5 s par défaut, 0,5 s minimum."
-          />
-        )}
-        {type === 'crawl' && (
-          <div className="space-y-2">
-            <Check checked={form.retryErrors} onChange={update('retryErrors')}>
-              Retenter les chansons en erreur
-            </Check>
-            <Check checked={form.refreshLists} onChange={update('refreshLists')}>
-              Relire les pages de liste déjà lues
-            </Check>
-          </div>
-        )}
-        {type !== 'import' && (
           <Check checked={form.importAfter} onChange={update('importAfter')}>
             Importer dans la base à la fin{' '}
             <span className="text-muted">(mise à jour, sans suppression)</span>
           </Check>
+        )}
+
+        {type !== 'import' && (
+          <details className="group rounded-xl border border-line/70 px-3.5 py-2.5 open:bg-surface-2/60">
+            <summary className="flex cursor-pointer items-center gap-1.5 text-sm font-medium text-muted select-none hover:text-ink">
+              <ChevronRight
+                className="size-4 shrink-0 transition-transform group-open:rotate-90"
+                aria-hidden="true"
+              />
+              Options avancées
+            </summary>
+            <div className="mt-3 space-y-4">
+              <NumberField
+                id="job-delay"
+                label="Délai entre deux requêtes (s)"
+                value={form.delay}
+                onChange={update('delay')}
+                min={0.5}
+                step={0.5}
+                hint="Respect du site source : 1,5 s par défaut, 0,5 s minimum."
+              />
+              {type === 'crawl' && (
+                <div className="space-y-2">
+                  <Check checked={form.retryErrors} onChange={update('retryErrors')}>
+                    Retenter les chansons en erreur
+                  </Check>
+                  <Check checked={form.refreshLists} onChange={update('refreshLists')}>
+                    Relire les pages de liste déjà lues
+                  </Check>
+                </div>
+              )}
+            </div>
+          </details>
         )}
       </div>
 

@@ -1,6 +1,7 @@
 import { createBrowserRouter } from 'react-router';
 import { AdminLayout } from './admin/AdminLayout';
 import { CrawlPagesPage } from './admin/pages/CrawlPagesPage';
+import { EditsPage } from './admin/pages/EditsPage';
 import { JobsPage } from './admin/pages/JobsPage';
 import { ListPagesPage } from './admin/pages/ListPagesPage';
 import { OverviewPage } from './admin/pages/OverviewPage';
@@ -38,6 +39,7 @@ export const router = createBrowserRouter([
     errorElement: <RouteErrorPage />,
     children: [
       { index: true, element: <OverviewPage /> },
+      { path: 'corrections', element: <EditsPage /> },
       { path: 'pages', element: <CrawlPagesPage /> },
       { path: 'listes', element: <ListPagesPage /> },
       { path: 'taches', element: <JobsPage /> },

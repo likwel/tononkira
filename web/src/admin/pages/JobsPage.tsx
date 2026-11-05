@@ -81,7 +81,10 @@ export function JobsPage() {
 
   return (
     <>
-      <AdminHeading title="Historique des tâches">
+      <AdminHeading
+        title="Historique des tâches"
+        subtitle="Chaque collecte, revérification ou import, avec son résultat et son journal."
+      >
         {jobs.data && <p className="text-sm text-muted">{plural(jobs.data.meta.total, 'tâche')}</p>}
       </AdminHeading>
       {jobs.isError ? (

@@ -1,8 +1,8 @@
-import { ChevronRight, History } from 'lucide-react';
+import { ChevronRight, History, PencilLine } from 'lucide-react';
 import { Link } from 'react-router';
 import { EmptyState, ErrorState } from '../../components/States';
 import { cx } from '../../components/ui';
-import { formatNumber } from '../../lib/format';
+import { formatNumber, plural } from '../../lib/format';
 import { AdminHeading } from '../AdminLayout';
 import { JobStatusBadge } from '../components/Badges';
 import { JobPanel } from '../components/JobPanel';
@@ -55,7 +55,25 @@ export function OverviewPage() {
 
   return (
     <>
-      <AdminHeading title="Vue d'ensemble" />
+      <AdminHeading
+        title="Vue d'ensemble"
+        subtitle="L'état du catalogue et de la collecte, et de quoi lancer une tâche."
+      />
+
+      {!!data?.pendingEdits && (
+        <Link
+          to="/admin/corrections"
+          className="mb-6 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border border-accent/40 bg-accent-soft/50 px-5 py-4 transition-colors hover:border-accent"
+        >
+          <PencilLine className="size-5 shrink-0 text-accent" aria-hidden="true" />
+          <span className="font-medium text-ink">
+            {plural(data.pendingEdits, 'correction proposée', 'corrections proposées')} à relire
+          </span>
+          <span className="ml-auto inline-flex items-center gap-0.5 text-sm font-medium text-accent">
+            Relire <ChevronRight className="size-4" aria-hidden="true" />
+          </span>
+        </Link>
+      )}
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
         <Stat

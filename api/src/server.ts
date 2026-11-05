@@ -7,6 +7,7 @@ import { createApp } from './app.js';
 import { loadConfig } from './config.js';
 import { createPrisma } from './db.js';
 import { PrismaCatalog } from './prisma-catalog.js';
+import { PrismaLyricEdits } from './prisma-lyric-edits.js';
 
 const config = loadConfig();
 const logger = pino({
@@ -18,6 +19,7 @@ const logger = pino({
 
 const prisma = createPrisma(config.DATABASE_URL);
 const catalog = new PrismaCatalog(prisma);
+const edits = new PrismaLyricEdits(prisma);
 const python = new ProcessPythonRunner(config.pythonBin, config.dataDir);
 const jobStore = new PrismaJobStore(prisma);
 const jobs = new JobRunner({
@@ -37,6 +39,7 @@ const app = createApp({
   catalog,
   corsOrigins: config.corsOrigins,
   logger,
+  edits,
   admin: {
     token: config.ADMIN_TOKEN,
     catalog,
@@ -45,6 +48,7 @@ const app = createApp({
     jobStore,
     python,
     library: new PrismaSongLibrary(prisma),
+    edits,
   },
 });
 

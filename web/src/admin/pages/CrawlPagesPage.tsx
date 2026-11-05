@@ -198,7 +198,10 @@ export function CrawlPagesPage() {
 
   return (
     <>
-      <AdminHeading title="Pages collectées">
+      <AdminHeading
+        title="Pages collectées"
+        subtitle="Chaque chanson repérée sur le site source, son état et la date de sa dernière vérification."
+      >
         <div className="flex flex-wrap items-center gap-3">
           {pages.data && (
             <p className="text-sm text-muted">{plural(pages.data.meta.total, 'page')}</p>

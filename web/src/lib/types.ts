@@ -62,3 +62,12 @@ export interface SearchResult {
 
 export type SongSort = 'recent' | 'popular' | 'title';
 export type ArtistSort = 'name' | 'songs';
+
+export type EditStatus = 'pending' | 'approved' | 'rejected';
+
+/** Correction des paroles proposée depuis une page de chanson. */
+export interface LyricEditDraft {
+  lyrics: string;
+  note?: string | undefined;
+  author?: string | undefined;
+}

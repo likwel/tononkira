@@ -1,14 +1,22 @@
 import { Router, type Response } from 'express';
+import { z } from 'zod';
 import type { Catalog } from './catalog.js';
 import { HttpError } from './lib/http-error.js';
 import { artistListQuery, pageMeta, parseQuery, searchQuery, songListQuery } from './lib/query.js';
+import type { LyricEdits } from './lyric-edits.js';
+
+const editBody = z.object({
+  lyrics: z.string().trim().min(20, 'au moins 20 caractères').max(20_000),
+  note: z.string().trim().max(500).optional(),
+  author: z.string().trim().max(80).optional(),
+});
 
 /** Les données ne changent qu'à l'import : un court cache navigateur/CDN suffit. */
 function cacheFor(res: Response, seconds: number): void {
   res.set('Cache-Control', `public, max-age=${seconds}, stale-while-revalidate=${seconds * 5}`);
 }
 
-export function createApiRouter(catalog: Catalog): Router {
+export function createApiRouter(catalog: Catalog, edits?: LyricEdits): Router {
   const router = Router();
 
   router.get('/health', async (_req, res) => {
@@ -45,6 +53,22 @@ export function createApiRouter(catalog: Catalog): Router {
     if (!song) throw HttpError.notFound('Chanson introuvable');
     res.json({ data: song });
   });
+
+  if (edits) {
+    /** Correction proposée par un visiteur : enregistrée, mais publiée seulement après validation. */
+    router.post('/songs/:artistSlug/:slug/edits', async (req, res) => {
+      const body = parseQuery(editBody, req.body);
+      const result = await edits.submit({
+        artistSlug: req.params.artistSlug,
+        slug: req.params.slug,
+        ...body,
+      });
+      if (result === 'unknown-song') throw HttpError.notFound('Chanson introuvable');
+      if (result === 'unchanged')
+        throw HttpError.badRequest('Ces paroles sont identiques à celles déjà publiées');
+      res.status(201).json({ data: { id: result.id, status: result.status } });
+    });
+  }
 
   router.get('/artists', async (req, res) => {
     cacheFor(res, 60);

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import type { Catalog } from '../catalog.js';
 import { HttpError } from '../lib/http-error.js';
 import { pageMeta, parseQuery } from '../lib/query.js';
+import { EDIT_STATUSES, type LyricEdits } from '../lyric-edits.js';
 import { requireAdmin } from './auth.js';
 import { CRAWL_SORTS, CRAWL_STATUSES, type CrawlStateSource } from './crawl-state.js';
 import { JOB_TYPES, type JobRunner, type JobStore } from './jobs.js';
@@ -17,6 +18,7 @@ export interface AdminDeps {
   jobStore: JobStore;
   python: PythonRunner;
   library: SongLibrary;
+  edits: LyricEdits;
 }
 
 /** Seules ces pages peuvent être relues à la demande (pas de requête vers un site arbitraire). */
@@ -62,6 +64,17 @@ const jobBody = z
     },
   );
 
+const editsQuery = z.object({
+  page,
+  limit: limit.default(20),
+  status: z.enum(EDIT_STATUSES).default('pending'),
+});
+
+/** L'administration peut retoucher le texte proposé avant de le publier. */
+const reviewBody = z.object({
+  lyrics: z.string().trim().min(20, 'au moins 20 caractères').max(20_000).optional(),
+});
+
 const noStore: RequestHandler = (_req, res, next) => {
   res.set('Cache-Control', 'no-store');
   next();
@@ -95,10 +108,32 @@ export function createAdminRouter(deps: AdminDeps): Router {
   });
 
   router.get('/overview', async (_req, res) => {
+    const [db, pendingEdits] = await Promise.all([deps.catalog.stats(), deps.edits.countPending()]);
     res.json({
-      data: { db: await deps.catalog.stats(), crawl: deps.crawl.stats(), job: deps.jobs.current() },
+      data: { db, crawl: deps.crawl.stats(), job: deps.jobs.current(), pendingEdits },
     });
   });
+
+  router.get('/lyric-edits', async (req, res) => {
+    const query = parseQuery(editsQuery, req.query);
+    const { items, total } = await deps.edits.list(query);
+    res.json({ data: items, meta: pageMeta(query, total) });
+  });
+
+  const review =
+    (action: 'approve' | 'reject'): RequestHandler =>
+    async (req, res) => {
+      const id = parseQuery(pageNumber, req.params.id);
+      const { lyrics } = parseQuery(reviewBody, req.body ?? {});
+      const result = await deps.edits.review(id, action, lyrics);
+      if (result === 'not-found') throw HttpError.notFound('Proposition introuvable');
+      if (result === 'already-reviewed')
+        throw new HttpError(409, 'already_reviewed', 'Cette proposition a déjà été traitée');
+      res.json({ data: result });
+    };
+
+  router.post('/lyric-edits/:id/approve', review('approve'));
+  router.post('/lyric-edits/:id/reject', review('reject'));
 
   router.get('/pages', async (req, res) => {
     const query = parseQuery(pagesQuery, req.query);

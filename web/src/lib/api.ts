@@ -2,6 +2,8 @@ import type {
   ArtistDetail,
   ArtistSort,
   ArtistSummary,
+  EditStatus,
+  LyricEditDraft,
   Paginated,
   SearchResult,
   SongDetail,
@@ -34,11 +36,19 @@ export function buildQuery(params: Params = {}): string {
   return query ? `?${query}` : '';
 }
 
-async function get<T>(path: string, params?: Params, signal?: AbortSignal): Promise<T> {
+async function send<T>(
+  path: string,
+  { params, signal, body }: { params?: Params; signal?: AbortSignal; body?: unknown } = {},
+): Promise<T> {
   let response: Response;
   try {
     response = await fetch(`${API_BASE}${path}${buildQuery(params)}`, {
-      headers: { Accept: 'application/json' },
+      method: body === undefined ? 'GET' : 'POST',
+      headers: {
+        Accept: 'application/json',
+        ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
+      },
+      body: body === undefined ? undefined : JSON.stringify(body),
       signal,
     });
   } catch (error) {
@@ -46,12 +56,16 @@ async function get<T>(path: string, params?: Params, signal?: AbortSignal): Prom
     throw new ApiError(0, 'Impossible de joindre le serveur. Vérifiez votre connexion.');
   }
   if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as {
+    const json = (await response.json().catch(() => null)) as {
       error?: { message?: string };
     } | null;
-    throw new ApiError(response.status, body?.error?.message ?? `Erreur ${response.status}`);
+    throw new ApiError(response.status, json?.error?.message ?? `Erreur ${response.status}`);
   }
   return (await response.json()) as T;
+}
+
+function get<T>(path: string, params?: Params, signal?: AbortSignal): Promise<T> {
+  return send<T>(path, { params, signal });
 }
 
 const segment = encodeURIComponent;
@@ -84,6 +98,13 @@ export const api = {
 
   search: (params: { q: string; page?: number; limit?: number }, signal?: AbortSignal) =>
     get<SearchResult>('/search', params, signal),
+
+  /** Propose une correction des paroles : publiée après validation par l'administration. */
+  submitEdit: (artistSlug: string, slug: string, draft: LyricEditDraft) =>
+    send<{ data: { id: number; status: EditStatus } }>(
+      `/songs/${segment(artistSlug)}/${segment(slug)}/edits`,
+      { body: draft },
+    ).then((r) => r.data),
 };
 
 export function songPath(song: Pick<SongSummary, 'artistSlug' | 'slug'>): string {

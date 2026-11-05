@@ -18,6 +18,7 @@ import type {
 import type { CatalogEntry, SongLibrary } from '../src/admin/prisma-adapters.js';
 import type { PythonEvent, PythonRunHandlers, PythonRunner } from '../src/admin/python.js';
 import type { ImportReport, UpsertOutcome } from '../src/importer/import-songs.js';
+import type { LyricEditDto, LyricEditQuery, LyricEdits, NewLyricEdit } from '../src/lyric-edits.js';
 
 export const TOKEN = 'jeton-de-test-suffisamment-long-0123456789';
 
@@ -145,6 +146,58 @@ export class FakeFileImporter implements FileImporter {
     this.paths.push(path);
     onProgress(IMPORT_REPORT);
     return IMPORT_REPORT;
+  }
+}
+
+/** Propositions de correction en mémoire : les paroles publiées vivent dans `published`. */
+export class FakeLyricEdits implements LyricEdits {
+  rows: LyricEditDto[] = [];
+  published = new Map<string, string>([['mpihira/hira', 'Andalana']]);
+
+  private key(song: { artistSlug: string; slug: string }) {
+    return `${song.artistSlug}/${song.slug}`;
+  }
+
+  async submit({ artistSlug, slug, lyrics, note, author }: NewLyricEdit) {
+    const current = this.published.get(`${artistSlug}/${slug}`);
+    if (current === undefined) return 'unknown-song' as const;
+    if (current.trim() === lyrics.trim()) return 'unchanged' as const;
+    const row: LyricEditDto = {
+      id: this.rows.length + 1,
+      status: 'pending',
+      song: { artistSlug, slug, title: 'Hira' },
+      lyrics,
+      baseLyrics: current,
+      note: note ?? null,
+      author: author ?? null,
+      createdAt: new Date().toISOString(),
+      reviewedAt: null,
+    };
+    this.rows.push(row);
+    return row;
+  }
+
+  async list({ page, limit, status }: LyricEditQuery) {
+    const matching = this.rows.filter((row) => !status || row.status === status);
+    return {
+      items: [...matching].reverse().slice((page - 1) * limit, page * limit),
+      total: matching.length,
+    };
+  }
+
+  async countPending() {
+    return this.rows.filter((row) => row.status === 'pending').length;
+  }
+
+  async review(id: number, action: 'approve' | 'reject', lyrics?: string | undefined) {
+    const row = this.rows.find((candidate) => candidate.id === id);
+    if (!row) return 'not-found' as const;
+    if (row.status !== 'pending') return 'already-reviewed' as const;
+    row.lyrics = lyrics ?? row.lyrics;
+    row.status = action === 'approve' ? 'approved' : 'rejected';
+    row.reviewedAt = new Date().toISOString();
+    if (action === 'approve') this.published.set(this.key(row.song), row.lyrics);
+    return row;
   }
 }
 

@@ -1,5 +1,5 @@
 /** Miroir des réponses de /api/admin (api/src/admin). */
-import type { PageMeta, Stats } from '../lib/types';
+import type { EditStatus, PageMeta, Stats } from '../lib/types';
 
 export type CrawlStatus = 'pending' | 'done' | 'error' | 'gone';
 export type CrawlSort = 'recent' | 'changed' | 'stale' | 'title';
@@ -107,6 +107,20 @@ export interface Overview {
   db: Stats;
   crawl: CrawlStats | null;
   job: JobSnapshot | null;
+  pendingEdits: number;
+}
+
+/** Correction des paroles proposée depuis le site public. */
+export interface LyricEdit {
+  id: number;
+  status: EditStatus;
+  song: { artistSlug: string; slug: string; title: string };
+  lyrics: string;
+  baseLyrics: string;
+  note: string | null;
+  author: string | null;
+  createdAt: string;
+  reviewedAt: string | null;
 }
 
 export interface RefreshResult {

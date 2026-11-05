@@ -1,4 +1,5 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { EditStatus } from '../lib/types';
 import { adminApi } from './api';
 import type { CrawlSort, CrawlStatus, JobOptions, JobType } from './types';
 
@@ -82,4 +83,17 @@ export function useRefreshPage() {
 export function useRefreshListPage() {
   const invalidate = useInvalidate();
   return useMutation({ mutationFn: adminApi.refreshListPage, onSuccess: invalidate });
+}
+
+export function useLyricEdits(params: { page: number; status: EditStatus }) {
+  return useQuery({
+    queryKey: [...ADMIN, 'lyric-edits', params],
+    queryFn: () => adminApi.lyricEdits(params),
+    placeholderData: keepPreviousData,
+  });
+}
+
+export function useReviewEdit() {
+  const invalidate = useInvalidate();
+  return useMutation({ mutationFn: adminApi.reviewEdit, onSuccess: invalidate });
 }

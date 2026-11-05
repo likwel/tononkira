@@ -127,7 +127,10 @@ export function ListPagesPage() {
 
   return (
     <>
-      <AdminHeading title="Pages de liste">
+      <AdminHeading
+        title="Pages de liste"
+        subtitle="Chaque page de liste du site source annonce une vingtaine de chansons. La relire y repère les nouvelles, qui passent « en attente » jusqu'à la prochaine collecte."
+      >
         {pages.data && (
           <p className="text-sm text-muted">
             {plural(pages.data.meta.total, 'page')} lue{pages.data.meta.total > 1 ? 's' : ''}
@@ -135,10 +138,6 @@ export function ListPagesPage() {
           </p>
         )}
       </AdminHeading>
-      <p className="-mt-4 mb-6 max-w-2xl text-sm text-muted">
-        Chaque page de liste du site source annonce une vingtaine de chansons. Relire une page y
-        repère les nouvelles chansons, qui passent « en attente » jusqu'à la prochaine collecte.
-      </p>
       <div className="mb-6">
         <ReadAnyPage lastPage={lastPage} />
       </div>
