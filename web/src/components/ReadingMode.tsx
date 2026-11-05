@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { artistNames } from '../lib/format';
 import { readStorage, writeStorage } from '../lib/storage';
 import type { SongDetail } from '../lib/types';
+import { Equalizer } from './Equalizer';
 import { LyricsView } from './LyricsView';
 import { cx, iconButton } from './ui';
 
@@ -137,11 +138,14 @@ export function ReadingMode({ song, onClose }: ReadingModeProps) {
       role="dialog"
       aria-modal="true"
       aria-label={`Mode lecture : ${song.title}`}
-      className="fixed inset-0 z-[60] flex flex-col bg-canvas text-ink"
+      className="fixed inset-0 z-[60] flex animate-slide-up flex-col bg-canvas text-ink"
     >
       <header className="flex items-center gap-3 border-b border-line/70 px-4 py-2.5 sm:px-6">
         <div className="min-w-0 flex-1">
-          <p className="truncate font-serif text-lg leading-tight font-semibold">{song.title}</p>
+          <p className="flex items-center gap-2 truncate font-display text-lg leading-tight font-bold tracking-tight">
+            {playing && <Equalizer className="shrink-0 text-accent" />}
+            <span className="truncate">{song.title}</span>
+          </p>
           <p className="truncate text-xs text-muted">{artistNames(song.artists)}</p>
         </div>
         <button

@@ -140,9 +140,9 @@ export class PrismaFileImporter implements FileImporter {
 
   importFile(
     path: string,
-    { onProgress, signal, logger }: Parameters<FileImporter['importFile']>[1],
+    { onProgress, signal, logger, force }: Parameters<FileImporter['importFile']>[1],
   ) {
     const lines = createInterface({ input: createReadStream(path, 'utf8'), crlfDelay: Infinity });
-    return importSongs(this.db, lines, logger, { onProgress, signal, progressEvery: 200 });
+    return importSongs(this.db, lines, logger, { force, onProgress, signal, progressEvery: 200 });
   }
 }

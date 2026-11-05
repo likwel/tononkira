@@ -98,6 +98,7 @@ export function describeOptions(type: JobType, options: JobOptions): string {
   }
   if (options.limit) parts.push(`${formatNumber(options.limit)} chansons max.`);
   if (options.retryErrors) parts.push('erreurs retentées');
+  if (options.force) parts.push('réimport complet');
   if (options.refreshLists) parts.push('listes relues');
   if (options.delay) parts.push(`délai ${String(options.delay).replace('.', ',')} s`);
   if (type !== 'import' && options.importAfter === false) parts.push('sans import');

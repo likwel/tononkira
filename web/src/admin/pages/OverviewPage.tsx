@@ -2,6 +2,7 @@ import { ChevronRight, History, PencilLine } from 'lucide-react';
 import { Link } from 'react-router';
 import { EmptyState, ErrorState } from '../../components/States';
 import { cx } from '../../components/ui';
+import { useCountUp } from '../../hooks/motion';
 import { formatNumber, plural } from '../../lib/format';
 import { AdminHeading } from '../AdminLayout';
 import { JobStatusBadge } from '../components/Badges';
@@ -18,17 +19,22 @@ interface StatProps {
   tone?: 'default' | 'danger';
 }
 
+/** Chiffre qui monte jusqu'à sa valeur au chargement du tableau de bord. */
+function CountUp({ value }: { value: number }) {
+  return <>{formatNumber(useCountUp(value))}</>;
+}
+
 function Stat({ label, value, hint, to, tone = 'default' }: StatProps) {
   const body = (
     <>
       <span className="text-xs font-medium tracking-wide text-muted uppercase">{label}</span>
       <span
         className={cx(
-          'mt-2 block font-serif text-3xl font-semibold tracking-tight tabular-nums',
+          'mt-2 block font-display text-3xl font-semibold tracking-tight tabular-nums',
           tone === 'danger' && 'text-danger',
         )}
       >
-        {typeof value === 'number' ? formatNumber(value) : value}
+        {typeof value === 'number' ? <CountUp value={value} /> : value}
       </span>
       {hint && <span className="mt-1 block text-xs text-muted">{hint}</span>}
     </>
@@ -131,7 +137,9 @@ export function OverviewPage() {
 
           <section className="rounded-3xl border border-line bg-surface p-5 shadow-soft sm:p-6">
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="font-serif text-xl font-semibold tracking-tight">Dernières tâches</h2>
+              <h2 className="font-display text-xl font-semibold tracking-tight">
+                Dernières tâches
+              </h2>
               <Link
                 to="/admin/taches"
                 className="inline-flex items-center gap-0.5 text-sm font-medium text-accent"

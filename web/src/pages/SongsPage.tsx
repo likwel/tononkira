@@ -73,7 +73,7 @@ export function SongsPage() {
         ) : (
           <>
             <div
-              className={`grid gap-3 transition-opacity sm:grid-cols-2 lg:grid-cols-3 ${isPlaceholderData ? 'opacity-60' : ''}`}
+              className={`stagger grid gap-3 transition-opacity sm:grid-cols-2 lg:grid-cols-3 ${isPlaceholderData ? 'opacity-60' : ''}`}
             >
               {data.data.map((song) => (
                 <SongCard key={`${song.artistSlug}/${song.slug}`} song={song} />

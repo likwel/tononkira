@@ -11,11 +11,14 @@ interface PageHeaderProps {
 
 export function PageHeader({ eyebrow, title, description, children }: PageHeaderProps) {
   return (
-    <header className="container-page pt-10 pb-6 sm:pt-14">
+    <header className="container-page animate-fade-up pt-10 pb-6 sm:pt-14">
       {eyebrow && (
-        <p className="text-xs font-semibold tracking-[0.18em] text-accent uppercase">{eyebrow}</p>
+        <p className="inline-flex items-center gap-2.5 text-xs font-bold tracking-[0.2em] text-accent uppercase">
+          <span className="h-px w-7 bg-current" aria-hidden="true" />
+          {eyebrow}
+        </p>
       )}
-      <h1 className="mt-2 font-serif text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
+      <h1 className="mt-2 font-display text-[2.6rem] leading-[1.02] font-bold tracking-[-0.03em] text-balance sm:text-6xl">
         {title}
       </h1>
       {description && <p className="mt-3 max-w-2xl text-muted text-pretty">{description}</p>}
@@ -43,10 +46,12 @@ export function Section({
   children,
 }: SectionProps) {
   return (
-    <section className="container-page mt-16 sm:mt-20">
+    <section className="reveal container-page mt-16 sm:mt-20">
       <div className="mb-6 flex items-end justify-between gap-4 border-b border-line pb-4">
         <div>
-          <h2 className="font-serif text-2xl font-semibold tracking-tight sm:text-3xl">{title}</h2>
+          <h2 className="font-display text-[1.65rem] font-bold tracking-[-0.025em] sm:text-[2rem]">
+            {title}
+          </h2>
           {subtitle && <p className="mt-1 text-sm text-muted">{subtitle}</p>}
         </div>
         {action}

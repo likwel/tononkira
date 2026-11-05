@@ -125,3 +125,20 @@ describe('JobRunner', () => {
     await runner.idle();
   });
 });
+
+describe('réimport complet', () => {
+  it('transmet « force » à l’import et le signale dans le journal', async () => {
+    const { runner, importer } = setup();
+    await runner.start('import', { force: true });
+    await runner.idle();
+    expect(importer.forced).toEqual([true]);
+    expect(runner.current()!.logs.join('\n')).toContain('Réimport complet');
+  });
+
+  it("n'en fait rien par défaut : seules les chansons modifiées sont réécrites", async () => {
+    const { runner, importer } = setup();
+    await runner.start('update', {});
+    await runner.idle();
+    expect(importer.forced).toEqual([false]);
+  });
+});

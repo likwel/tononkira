@@ -115,7 +115,7 @@ export function SearchPage() {
                 >
                   {plural(data.meta.total, 'chanson')}
                 </h2>
-                <ol>
+                <ol className="stagger">
                   {data.data.songs.map((song) => (
                     <li key={`${song.artistSlug}/${song.slug}`} className="border-b border-line/70">
                       <SongRow song={song} query={q} />

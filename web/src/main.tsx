@@ -1,6 +1,7 @@
-import '@fontsource-variable/inter';
-import '@fontsource-variable/fraunces/opsz.css';
-import '@fontsource-variable/fraunces/opsz-italic.css';
+import '@fontsource-variable/figtree';
+import '@fontsource-variable/bricolage-grotesque/standard.css';
+import '@fontsource-variable/newsreader/opsz.css';
+import '@fontsource-variable/newsreader/opsz-italic.css';
 import './index.css';
 
 import { QueryClientProvider } from '@tanstack/react-query';

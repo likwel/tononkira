@@ -41,7 +41,7 @@ export function LoginPage() {
         <span className="grid size-12 place-items-center rounded-2xl bg-accent-soft text-accent">
           <KeyRound className="size-6" aria-hidden="true" />
         </span>
-        <h1 className="mt-5 font-serif text-3xl font-semibold tracking-tight">Administration</h1>
+        <h1 className="mt-5 font-display text-3xl font-semibold tracking-tight">Administration</h1>
         <p className="mt-2 text-sm text-muted">
           Saisissez le jeton défini dans <code className="text-ink-soft">ADMIN_TOKEN</code> (fichier{' '}
           <code className="text-ink-soft">api/.env</code>).

@@ -141,9 +141,11 @@ export const IMPORT_REPORT: ImportReport = {
 
 export class FakeFileImporter implements FileImporter {
   paths: string[] = [];
+  forced: boolean[] = [];
 
-  async importFile(path: string, { onProgress }: Parameters<FileImporter['importFile']>[1]) {
+  async importFile(path: string, { onProgress, force }: Parameters<FileImporter['importFile']>[1]) {
     this.paths.push(path);
+    this.forced.push(force === true);
     onProgress(IMPORT_REPORT);
     return IMPORT_REPORT;
   }

@@ -84,7 +84,7 @@ function EditCard({ edit }: { edit: LyricEdit }) {
     <section className="rounded-3xl border border-line bg-surface p-5 shadow-soft sm:p-6">
       <div className="flex flex-wrap items-start gap-x-3 gap-y-2">
         <div className="min-w-0 flex-1">
-          <h2 className="flex items-center gap-2 font-serif text-xl font-semibold tracking-tight">
+          <h2 className="flex items-center gap-2 font-display text-xl font-semibold tracking-tight">
             <Link to={songPath(edit.song)} className="transition-colors hover:text-accent">
               {edit.song.title}
             </Link>

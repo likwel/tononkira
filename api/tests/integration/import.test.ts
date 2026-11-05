@@ -83,6 +83,13 @@ describe('import JSONL (mise à jour par URL source)', () => {
     expect(await db.song.count()).toBe(3);
   });
 
+  it('réimport forcé : réécrit les chansons inchangées, sans rien supprimer', async () => {
+    await importSongs(db, lines(line('potika'), line('niserana')), silent);
+    const forced = await importSongs(db, lines(line('potika')), silent, { force: true });
+    expect(forced).toMatchObject({ created: 0, updated: 1, unchanged: 0 });
+    expect(await db.song.count()).toBe(2);
+  });
+
   it('signale une ligne invalide sans bloquer les autres', async () => {
     const report = await importSongs(db, lines('{"title": ', line('potika')), silent);
     expect(report).toMatchObject({ invalid: 1, created: 1 });

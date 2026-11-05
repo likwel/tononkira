@@ -52,6 +52,7 @@ const jobBody = z
         retryErrors: z.boolean().optional(),
         refreshLists: z.boolean().optional(),
         importAfter: z.boolean().optional(),
+        force: z.boolean().optional(),
       })
       .strict()
       .default({}),

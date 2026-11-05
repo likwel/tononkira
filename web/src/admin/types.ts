@@ -54,6 +54,8 @@ export interface JobOptions {
   retryErrors?: boolean;
   refreshLists?: boolean;
   importAfter?: boolean;
+  /** Import : réécrire toutes les chansons, même inchangées. */
+  force?: boolean;
 }
 
 export interface ImportReport {

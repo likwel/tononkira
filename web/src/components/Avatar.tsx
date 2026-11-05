@@ -22,7 +22,7 @@ export function Avatar({ name, seed, size = 'md', shape = 'circle' }: AvatarProp
     <span
       aria-hidden="true"
       className={cx(
-        'grid shrink-0 select-none place-items-center font-serif font-semibold tracking-tight text-white/95 shadow-[inset_0_1px_0_rgb(255_255_255/0.18)]',
+        'grid shrink-0 select-none place-items-center font-display font-semibold tracking-tight text-white/95 shadow-[inset_0_1px_0_rgb(255_255_255/0.18)]',
         SIZES[size],
         shape === 'circle' ? 'rounded-full' : 'rounded-2xl',
       )}

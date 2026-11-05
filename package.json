@@ -21,11 +21,12 @@
     "db:down": "docker compose down",
     "db:migrate": "npm run db:migrate -w api",
     "db:import": "npm run db:import -w api --",
-    "data:setup": "cd data && python3 -m venv --copies .venv && .venv/bin/pip install -q -e '.[dev]'",
-    "data:test": "cd data && .venv/bin/python -m pytest -q",
-    "data:crawl": "cd data && .venv/bin/python -m tononkira_data crawl",
-    "data:export": "cd data && .venv/bin/python -m tononkira_data export",
-    "data:stats": "cd data && .venv/bin/python -m tononkira_data stats"
+    "data:setup": "node scripts/data.mjs setup",
+    "data:test": "node scripts/data.mjs test",
+    "data:crawl": "node scripts/data.mjs crawl",
+    "data:export": "node scripts/data.mjs export",
+    "data:stats": "node scripts/data.mjs stats",
+    "data:update": "node scripts/data.mjs update"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",

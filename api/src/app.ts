@@ -19,6 +19,8 @@ export interface AppOptions {
   rateLimitPerMinute?: number | false;
   /** Routes /api/admin (absentes si non fourni). */
   admin?: AdminDeps;
+  /** Développement : joint la cause des erreurs 500 aux réponses. */
+  exposeErrors?: boolean;
   /** Propositions de correction des paroles (route d'envoi absente si non fourni). */
   edits?: LyricEdits;
 }
@@ -29,6 +31,7 @@ export function createApp({
   logger,
   rateLimitPerMinute = 300,
   admin,
+  exposeErrors = false,
   edits,
 }: AppOptions): Express {
   const app = express();
@@ -93,6 +96,6 @@ export function createApp({
   }
   app.use('/api', express.json({ limit: '64kb' }), createApiRouter(catalog, edits));
   app.use(notFound);
-  app.use(errorHandler(logger));
+  app.use(errorHandler({ logger, exposeErrors }));
   return app;
 }

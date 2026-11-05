@@ -1,7 +1,8 @@
-import { MicVocal, Shuffle, Sparkles } from 'lucide-react';
+import { MicVocal, Shuffle } from 'lucide-react';
 import { Avatar } from '../components/Avatar';
 import { Link } from 'react-router';
 import { ArtistCard } from '../components/ArtistCard';
+import { Equalizer } from '../components/Equalizer';
 import { Section } from '../components/PageParts';
 import { SearchBox } from '../components/SearchBox';
 import { ArtistCardSkeleton, Repeat, RowSkeleton, SongCardSkeleton } from '../components/Skeletons';
@@ -10,7 +11,7 @@ import { EmptyState, ErrorState } from '../components/States';
 import { buttonGhost } from '../components/ui';
 import { useArtists, useSongs, useStats } from '../hooks/queries';
 import { useRandomSong } from '../hooks/useRandomSong';
-import { songPath } from '../lib/api';
+import { artistPath, songPath } from '../lib/api';
 import { artistNames, formatNumber } from '../lib/format';
 import { clearHistory, useHistory } from '../lib/history';
 
@@ -24,6 +25,7 @@ export function HomePage() {
   const random = useRandomSong();
   const history = useHistory();
   const empty = stats.data?.songs === 0;
+  const topArtists = artists.data?.data.slice(0, 5) ?? [];
 
   return (
     <>
@@ -31,26 +33,51 @@ export function HomePage() {
 
       <section className="relative isolate overflow-hidden">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
-          <div className="absolute -top-40 left-1/2 h-[30rem] w-[52rem] -translate-x-1/2 rounded-full bg-accent-soft opacity-80 blur-3xl" />
-          <div className="absolute top-32 -right-24 size-80 rounded-full bg-leaf-soft opacity-90 blur-3xl" />
+          {/* Aurore : trois halos aux couleurs de la marque qui dérivent lentement. */}
+          <div className="absolute -top-56 left-[8%] size-[34rem] animate-drift rounded-full bg-accent/20 blur-3xl" />
+          <div className="absolute -top-32 right-[4%] size-[28rem] animate-drift rounded-full bg-sun/25 blur-3xl [animation-delay:-8s] dark:bg-sun/10" />
+          <div className="absolute top-48 left-[38%] size-[26rem] animate-drift rounded-full bg-lagoon/15 blur-3xl [animation-delay:-15s]" />
           <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-line to-transparent" />
         </div>
 
-        <div className="container-page flex flex-col items-center pt-14 pb-12 text-center sm:pt-24 sm:pb-16">
-          <p className="inline-flex items-center gap-2 rounded-full border border-line bg-surface/70 px-3.5 py-1 text-xs font-medium text-ink-soft backdrop-blur">
-            <Sparkles className="size-3.5 text-accent" aria-hidden="true" />
+        <div className="container-page flex flex-col items-center pt-16 pb-14 text-center sm:pt-28 sm:pb-20">
+          <p className="inline-flex animate-fade-up items-center gap-2.5 rounded-full border border-line/80 bg-surface/70 px-3.5 py-1.5 text-xs font-semibold text-ink-soft shadow-soft backdrop-blur">
+            <Equalizer className="text-accent" />
             {stats.data
               ? `${formatNumber(stats.data.songs)} chansons · ${formatNumber(stats.data.artists)} artistes`
               : 'Hira malagasy'}
           </p>
-          <h1 className="mt-6 max-w-3xl font-serif text-[2.6rem] leading-[1.05] font-semibold tracking-tight text-balance sm:text-6xl lg:text-7xl">
-            Les paroles des chansons <em className="font-medium text-accent">malagasy</em>
+          <h1 className="mt-7 max-w-4xl animate-fade-up font-display text-[2.8rem] leading-[0.98] font-bold tracking-[-0.035em] [animation-delay:80ms] sm:text-7xl lg:text-[5.4rem]">
+            Les paroles des chansons{' '}
+            <em className="text-gradient pr-[0.08em] font-serif font-medium tracking-[-0.01em] italic [box-decoration-break:clone]">
+              malagasy
+            </em>
           </h1>
-          <p className="mt-5 max-w-xl text-base text-muted text-pretty sm:text-lg">
+          <p className="mt-6 max-w-xl animate-fade-up text-base text-muted text-pretty [animation-delay:160ms] sm:text-lg">
             Retrouvez un titre, un artiste ou simplement le vers qui vous trotte dans la tête.
           </p>
-          <SearchBox size="lg" className="mt-8 w-full max-w-xl" />
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-1">
+          <SearchBox
+            size="lg"
+            className="mt-9 w-full max-w-xl animate-fade-up [animation-delay:240ms]"
+          />
+          {topArtists.length > 0 && (
+            <div className="mt-5 flex max-w-2xl animate-fade-up flex-wrap items-center justify-center gap-2 [animation-delay:320ms]">
+              <span className="text-xs font-semibold tracking-wide text-muted uppercase">
+                Populaires
+              </span>
+              {topArtists.map((artist) => (
+                <Link
+                  key={artist.slug}
+                  to={artistPath(artist)}
+                  viewTransition
+                  className="rounded-full border border-line bg-surface/70 px-3 py-1 text-xs font-medium text-ink-soft backdrop-blur transition duration-200 hover:-translate-y-px hover:border-accent/50 hover:text-accent"
+                >
+                  {artist.name}
+                </Link>
+              ))}
+            </div>
+          )}
+          <div className="mt-6 flex animate-fade-up flex-wrap items-center justify-center gap-1 [animation-delay:400ms]">
             <button
               type="button"
               onClick={random.go}
@@ -60,7 +87,7 @@ export function HomePage() {
               <Shuffle className="size-4" aria-hidden="true" />
               Une chanson au hasard
             </button>
-            <Link to="/mpihira" className={buttonGhost}>
+            <Link to="/mpihira" viewTransition className={buttonGhost}>
               <MicVocal className="size-4" aria-hidden="true" />
               Parcourir les artistes
             </Link>
@@ -91,7 +118,7 @@ export function HomePage() {
                 </button>
               }
             >
-              <ul className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 lg:grid-cols-6">
+              <ul className="stagger no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 lg:grid-cols-6">
                 {history.slice(0, 6).map((entry) => (
                   <li
                     key={`${entry.artistSlug}/${entry.slug}`}
@@ -99,7 +126,8 @@ export function HomePage() {
                   >
                     <Link
                       to={songPath(entry)}
-                      className="group flex h-full flex-col gap-3 rounded-2xl border border-line bg-surface p-3 shadow-soft transition duration-200 hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-lift"
+                      viewTransition
+                      className="group flex h-full flex-col gap-3 rounded-2xl border border-line bg-surface p-3 shadow-soft transition duration-300 ease-[var(--ease-out-expo)] hover:-translate-y-1 hover:border-accent/40 hover:shadow-lift"
                     >
                       <Avatar
                         name={entry.artists[0]?.name ?? entry.title}
@@ -107,7 +135,7 @@ export function HomePage() {
                         shape="square"
                       />
                       <span className="min-w-0">
-                        <span className="line-clamp-2 font-serif text-base leading-snug text-ink transition-colors group-hover:text-accent">
+                        <span className="line-clamp-2 font-display text-base font-semibold leading-snug tracking-tight text-ink transition-colors group-hover:text-accent">
                           {entry.title}
                         </span>
                         <span className="mt-0.5 block truncate text-xs text-muted">
@@ -129,7 +157,7 @@ export function HomePage() {
             {popular.isError ? (
               <ErrorState error={popular.error} onRetry={() => popular.refetch()} />
             ) : (
-              <ol className="grid gap-x-10 sm:grid-cols-2">
+              <ol className="stagger grid gap-x-10 sm:grid-cols-2">
                 {popular.data
                   ? popular.data.data.map((song, index) => (
                       <li
@@ -154,13 +182,13 @@ export function HomePage() {
             to="/hira?sort=title"
             linkLabel="Liste complète"
           >
-            <ul className="grid grid-cols-7 gap-2 sm:grid-cols-9 lg:grid-cols-13">
+            <ul className="stagger grid grid-cols-7 gap-2 sm:grid-cols-9 lg:grid-cols-13">
               {LETTERS.map((letter) => (
                 <li key={letter}>
                   <Link
                     to={`/hira?sort=title&letter=${letter.toLowerCase()}`}
                     aria-label={`Chansons commençant par ${letter}`}
-                    className="grid aspect-square place-items-center rounded-xl border border-line bg-surface font-serif text-xl font-semibold text-ink-soft shadow-soft transition duration-200 hover:-translate-y-0.5 hover:border-accent/50 hover:bg-accent-soft hover:text-accent sm:text-2xl"
+                    className="grid aspect-square place-items-center rounded-xl border border-line bg-surface font-display text-xl font-bold text-ink-soft shadow-soft transition duration-300 ease-[var(--ease-spring)] hover:-translate-y-1 hover:rotate-[-4deg] hover:border-accent hover:bg-accent hover:text-accent-ink hover:shadow-glow sm:text-2xl"
                   >
                     {letter}
                   </Link>
@@ -173,7 +201,7 @@ export function HomePage() {
             {recent.isError ? (
               <ErrorState error={recent.error} onRetry={() => recent.refetch()} />
             ) : (
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {recent.data ? (
                   recent.data.data.map((song) => (
                     <SongCard key={`${song.artistSlug}/${song.slug}`} song={song} />
@@ -195,7 +223,7 @@ export function HomePage() {
             {artists.isError ? (
               <ErrorState error={artists.error} onRetry={() => artists.refetch()} />
             ) : (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+              <div className="stagger grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
                 {artists.data ? (
                   artists.data.data.map((artist) => (
                     <ArtistCard key={artist.slug} artist={artist} />

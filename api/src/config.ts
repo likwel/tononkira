@@ -2,6 +2,7 @@ import 'dotenv/config';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
+import { defaultPythonBin } from './admin/python.js';
 
 /** Dossier data/ du monorepo (depuis src/ ou dist/, il est deux niveaux au-dessus). */
 const DEFAULT_DATA_DIR = fileURLToPath(new URL('../../data', import.meta.url));
@@ -47,7 +48,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     ...values,
     corsOrigins,
     dataDir,
-    pythonBin: values.PYTHON_BIN ?? path.join(dataDir, '.venv', 'bin', 'python'),
+    pythonBin: values.PYTHON_BIN ?? defaultPythonBin(dataDir),
     crawlStatePath: values.CRAWL_STATE_PATH ?? path.join(dataDir, 'output', 'state.sqlite3'),
     exportPath: values.EXPORT_PATH ?? path.join(dataDir, 'output', 'songs.jsonl'),
   };

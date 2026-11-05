@@ -3,6 +3,7 @@
  * Refuse toute base dont le nom ne finit pas par `_test` (jamais la base de travail).
  */
 import { execFileSync } from 'node:child_process';
+import { createRequire } from 'node:module';
 import { createPrisma } from '../../src/db.js';
 
 export const TEST_DATABASE_URL =
@@ -28,7 +29,10 @@ export default async function setup() {
     await admin.$disconnect();
   }
 
-  execFileSync('npx', ['prisma', 'migrate', 'deploy'], {
+  // Le CLI Prisma lancé par Node directement : « npx » est un .cmd sous Windows, que
+  // execFileSync refuse de lancer sans shell.
+  const prismaCli = createRequire(import.meta.url).resolve('prisma/build/index.js');
+  execFileSync(process.execPath, [prismaCli, 'migrate', 'deploy'], {
     env: { ...process.env, DATABASE_URL: TEST_DATABASE_URL },
     stdio: 'pipe',
   });

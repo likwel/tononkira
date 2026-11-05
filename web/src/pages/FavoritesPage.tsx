@@ -39,7 +39,7 @@ export function FavoritesPage() {
               ce navigateur, sans compte.
             </EmptyState>
           ) : (
-            <ul className="grid gap-3 sm:grid-cols-2">
+            <ul className="stagger grid gap-3 sm:grid-cols-2">
               {favorites.map((favorite) => (
                 <li
                   key={`${favorite.artistSlug}/${favorite.slug}`}
@@ -51,7 +51,7 @@ export function FavoritesPage() {
                     shape="square"
                   />
                   <Link to={songPath(favorite)} className="min-w-0 flex-1">
-                    <span className="block truncate font-serif text-lg leading-snug text-ink group-hover:text-accent">
+                    <span className="block truncate font-display text-lg leading-snug text-ink group-hover:text-accent">
                       {favorite.title}
                     </span>
                     <span className="block truncate text-sm text-muted">

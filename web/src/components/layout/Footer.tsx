@@ -3,7 +3,7 @@ export function Footer() {
     <footer className="mt-24 border-t border-line print:hidden">
       <div className="container-page flex flex-col gap-2 py-8 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
         <p>
-          <span className="font-serif text-base text-ink">Tononkira</span> — les paroles des
+          <span className="font-display text-base text-ink">Tononkira</span> — les paroles des
           chansons malagasy.
         </p>
         <p>

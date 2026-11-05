@@ -5,7 +5,7 @@ import { PrismaFileImporter, PrismaJobStore, PrismaSongLibrary } from './admin/p
 import { ProcessPythonRunner } from './admin/python.js';
 import { createApp } from './app.js';
 import { loadConfig } from './config.js';
-import { createPrisma } from './db.js';
+import { createPrisma, staleClientModels } from './db.js';
 import { PrismaCatalog } from './prisma-catalog.js';
 import { PrismaLyricEdits } from './prisma-lyric-edits.js';
 
@@ -16,6 +16,15 @@ const logger = pino({
     ? { transport: { target: 'pino-pretty', options: { translateTime: 'HH:MM:ss' } } }
     : {}),
 });
+
+const stale = staleClientModels();
+if (stale.length) {
+  logger.fatal(
+    `Client Prisma périmé : modèle(s) ${stale.join(', ')} absent(s). ` +
+      'Lancer « npm run db:generate -w api » (fait automatiquement par npm run dev) puis redémarrer.',
+  );
+  process.exit(1);
+}
 
 const prisma = createPrisma(config.DATABASE_URL);
 const catalog = new PrismaCatalog(prisma);
@@ -39,6 +48,7 @@ const app = createApp({
   catalog,
   corsOrigins: config.corsOrigins,
   logger,
+  exposeErrors: config.NODE_ENV === 'development',
   edits,
   admin: {
     token: config.ADMIN_TOKEN,

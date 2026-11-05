@@ -36,7 +36,7 @@ export function LyricsEditForm({ song, onClose }: { song: SongDetail; onClose: (
         <span className="grid size-12 place-items-center rounded-full bg-leaf/15 text-leaf mx-auto">
           <CheckCircle2 className="size-6" aria-hidden="true" />
         </span>
-        <h2 className="mt-4 font-serif text-2xl font-semibold tracking-tight">Merci !</h2>
+        <h2 className="mt-4 font-display text-2xl font-semibold tracking-tight">Merci !</h2>
         <p className="mx-auto mt-2 max-w-md text-sm text-ink-soft text-pretty">
           Votre correction a bien été envoyée. Elle sera relue par un administrateur avant d'être
           publiée : les paroles affichées ne changent pas tout de suite.
@@ -55,7 +55,9 @@ export function LyricsEditForm({ song, onClose }: { song: SongDetail; onClose: (
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="font-serif text-2xl font-semibold tracking-tight">Corriger les paroles</h2>
+          <h2 className="font-display text-2xl font-semibold tracking-tight">
+            Corriger les paroles
+          </h2>
           <p className="mt-1.5 text-sm text-muted text-pretty">
             Modifiez le texte ci-dessous. Un administrateur relit la proposition avant publication.
           </p>

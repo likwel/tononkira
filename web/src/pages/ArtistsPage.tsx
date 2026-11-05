@@ -104,7 +104,7 @@ export function ArtistsPage() {
         ) : (
           <>
             <div
-              className={`grid grid-cols-2 gap-3 transition-opacity sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 ${isPlaceholderData ? 'opacity-60' : ''}`}
+              className={`stagger grid grid-cols-2 gap-3 transition-opacity sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 ${isPlaceholderData ? 'opacity-60' : ''}`}
             >
               {data.data.map((artist) => (
                 <ArtistCard key={artist.slug} artist={artist} />

@@ -210,7 +210,7 @@ export function SearchBox({
         role="listbox"
         aria-label="Suggestions"
         hidden={!expanded}
-        className="absolute inset-x-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-line bg-surface py-1.5 text-left shadow-lift"
+        className="absolute inset-x-0 top-full z-50 mt-2 origin-top animate-scale-in overflow-hidden rounded-2xl border border-line bg-surface py-1.5 text-left shadow-lift"
       >
         {options.map((option, index) => {
           const Icon = ICONS[option.kind];

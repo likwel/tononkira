@@ -58,14 +58,14 @@ export function initials(name: string): string {
 
 /** Dégradés harmonisés avec la palette, choisis de façon stable selon le texte. */
 const GRADIENTS: [string, string][] = [
-  ['#c2552c', '#7a2e17'],
-  ['#d08a2e', '#8a4f14'],
-  ['#3f7d5f', '#1f4635'],
-  ['#4b5e9a', '#283561'],
-  ['#8d4a74', '#4f2442'],
-  ['#2f7f86', '#17474c'],
-  ['#a5653a', '#5d351b'],
-  ['#b04a5a', '#64222f'],
+  ['#e0532f', '#9c2a14'], // flamboyant
+  ['#f0a541', '#b8611b'], // mangue
+  ['#16a3ab', '#0a5b63'], // lagon
+  ['#7b4fa8', '#3f2563'], // améthyste
+  ['#3d5bd1', '#1f2f7a'], // nuit indigo
+  ['#2f9a62', '#1b5a3a'], // ravinala
+  ['#d6457a', '#8a1f47'], // hibiscus
+  ['#c47a4a', '#6e3a1f'], // cannelle
 ];
 
 export function gradientFor(seed: string): string {

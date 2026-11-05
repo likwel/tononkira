@@ -22,7 +22,12 @@ export function FavoriteButton({ song }: { song: SongSummary }) {
           : 'border-line text-ink-soft hover:border-accent/50 hover:text-ink',
       )}
     >
-      <Heart className={cx('size-4 transition', active && 'fill-current')} aria-hidden="true" />
+      {/* La clé relance l'animation « pop » à chaque ajout. */}
+      <Heart
+        key={String(active)}
+        className={cx('size-4 transition', active && 'animate-pop fill-current')}
+        aria-hidden="true"
+      />
       {/* Libellé court sur mobile : la barre d'outils partage la largeur avec 4 boutons. */}
       <span className="sm:hidden">Favori</span>
       <span className="max-sm:hidden">{active ? 'Dans vos favoris' : 'Ajouter aux favoris'}</span>

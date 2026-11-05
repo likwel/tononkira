@@ -3,46 +3,57 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * Palette « latérite & ravinala » : ivoire, terre cuite, vert ravinala.
- * Les composants n'utilisent que ces jetons (bg-canvas, text-ink, border-line, bg-accent…),
- * le mode sombre se résume donc à redéfinir les variables sous .dark.
+ * Palette « Flamboyant & Lagon » : papier chaud, vermillon du flamboyant (couleur
+ * principale), bleu lagon (secondaire), mangue (touches décoratives). Le mode sombre
+ * est une nuit prune, pensée pour lire des paroles le soir.
+ * Les composants n'utilisent que ces jetons (bg-canvas, text-ink, bg-accent…) : le thème
+ * sombre se résume à redéfinir les variables sous .dark.
+ * Contrastes vérifiés : texte courant ≥ 7:1, texte secondaire et accent ≥ 4,5:1.
  */
 :root {
-  --canvas: #faf6ef;
+  --canvas: #fbf8f4;
   --surface: #ffffff;
-  --surface-2: #f3ece1;
-  --ink: #221a14;
-  --ink-soft: #4a3f36;
-  --muted: #74675c;
-  --line: #e7dccd;
-  --accent: #b4441f;
+  --surface-2: #f4eee7;
+  --ink: #1d1720;
+  --ink-soft: #463c4a;
+  --muted: #6f6473;
+  --line: #e8e0d8;
+  --accent: #c8381e;
   --accent-ink: #ffffff;
-  --accent-soft: #f6e3d8;
-  --leaf: #2f6b4f;
-  --leaf-soft: #e1eee6;
-  --mark: #f7e2a6;
+  --accent-soft: #fbe6df;
+  --lagoon: #0b7a83;
+  --lagoon-soft: #dff1f1;
+  --sun: #e9a23b;
+  --leaf: #2b7a4b;
+  --leaf-soft: #e1f0e6;
+  --mark: #fde7a6;
   --danger: #b42318;
   --danger-soft: #fde8e6;
-  --shadow: 34 26 20;
+  --shadow: 46 24 36;
+  --grain-opacity: 0.035;
 }
 
 .dark {
-  --canvas: #14110e;
-  --surface: #1c1814;
-  --surface-2: #26201a;
-  --ink: #f3ebe0;
-  --ink-soft: #d8cbbb;
-  --muted: #a3968a;
-  --line: #332b24;
-  --accent: #e07a4f;
-  --accent-ink: #1a120c;
-  --accent-soft: #3a2419;
-  --leaf: #7fbf9a;
-  --leaf-soft: #1e2f26;
-  --mark: #5a4413;
-  --danger: #f97066;
-  --danger-soft: #3d1a17;
+  --canvas: #120f17;
+  --surface: #1a1621;
+  --surface-2: #241f2c;
+  --ink: #f5eff4;
+  --ink-soft: #d6ccd8;
+  --muted: #a397a8;
+  --line: #332c3d;
+  --accent: #ff7b5c;
+  --accent-ink: #1c0d09;
+  --accent-soft: #3a1f22;
+  --lagoon: #4cc9d1;
+  --lagoon-soft: #13303a;
+  --sun: #f4b860;
+  --leaf: #74d4a2;
+  --leaf-soft: #17302a;
+  --mark: #5c4515;
+  --danger: #ff8a7a;
+  --danger-soft: #3d1a1a;
   --shadow: 0 0 0;
+  --grain-opacity: 0.05;
 }
 
 @theme inline {
@@ -56,6 +67,9 @@
   --color-accent: var(--accent);
   --color-accent-ink: var(--accent-ink);
   --color-accent-soft: var(--accent-soft);
+  --color-lagoon: var(--lagoon);
+  --color-lagoon-soft: var(--lagoon-soft);
+  --color-sun: var(--sun);
   --color-leaf: var(--leaf);
   --color-leaf-soft: var(--leaf-soft);
   --color-mark: var(--mark);
@@ -64,16 +78,95 @@
 }
 
 @theme {
-  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
-  --font-serif: 'Fraunces Variable', ui-serif, Georgia, 'Times New Roman', serif;
-  --shadow-soft: 0 1px 2px rgb(var(--shadow) / 0.04), 0 8px 24px -12px rgb(var(--shadow) / 0.18);
-  --shadow-lift: 0 2px 4px rgb(var(--shadow) / 0.05), 0 18px 40px -18px rgb(var(--shadow) / 0.28);
+  /* Titres : linéale expressive. Interface : linéale chaleureuse. Paroles : serif de lecture. */
+  --font-display:
+    'Bricolage Grotesque Variable', 'Figtree Variable', ui-sans-serif, system-ui, 'Segoe UI',
+    sans-serif;
+  --font-sans:
+    'Figtree Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Newsreader Variable', ui-serif, Georgia, 'Times New Roman', serif;
+
+  --shadow-soft: 0 1px 2px rgb(var(--shadow) / 0.05), 0 8px 24px -12px rgb(var(--shadow) / 0.2);
+  --shadow-lift: 0 2px 6px rgb(var(--shadow) / 0.06), 0 22px 44px -20px rgb(var(--shadow) / 0.34);
+  --shadow-glow: 0 10px 30px -10px color-mix(in oklab, var(--accent) 55%, transparent);
+
+  /* Mouvement : sorties douces, rebond léger pour les retours d'action. */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --animate-fade-up: fade-up 0.7s var(--ease-out-expo) both;
+  --animate-fade-in: fade-in 0.5s var(--ease-out-expo) both;
+  --animate-scale-in: scale-in 0.22s var(--ease-out-expo) both;
+  --animate-pop: pop 0.45s var(--ease-spring);
+  --animate-drift: drift 22s ease-in-out infinite alternate;
+  --animate-eq: eq 1.1s ease-in-out infinite;
+  --animate-slide-up: slide-up 0.45s var(--ease-out-expo) both;
+  --animate-shimmer: shimmer 1.6s linear infinite;
+}
+
+/* Keyframes globales (hors @theme : toujours émises, utilisées aussi par les utilitaires). */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+@keyframes pop {
+  40% {
+    transform: scale(1.3);
+  }
+}
+@keyframes drift {
+  from {
+    transform: translate3d(-6%, -3%, 0) scale(1);
+  }
+  to {
+    transform: translate3d(6%, 4%, 0) scale(1.12);
+  }
+}
+@keyframes eq {
+  0%,
+  100% {
+    transform: scaleY(0.3);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 100%, 0);
+  }
+}
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
 }
 
 @utility container-page {
   margin-inline: auto;
   width: 100%;
-  max-width: 72rem;
+  max-width: 74rem;
   padding-inline: 1rem;
   @media (width >= 40rem) {
     padding-inline: 1.5rem;
@@ -87,32 +180,167 @@
   }
 }
 
+/* Dégradé de marque sur du texte (mot-clé du titre d'accueil). */
+@utility text-gradient {
+  background-image: linear-gradient(110deg, var(--accent) 10%, var(--sun) 55%, var(--lagoon) 95%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* Entrée en cascade des enfants d'une grille ou d'une liste. */
+@utility stagger {
+  & > * {
+    animation: fade-up 0.6s var(--ease-out-expo) both;
+  }
+  & > :nth-child(2) {
+    animation-delay: 40ms;
+  }
+  & > :nth-child(3) {
+    animation-delay: 80ms;
+  }
+  & > :nth-child(4) {
+    animation-delay: 120ms;
+  }
+  & > :nth-child(5) {
+    animation-delay: 160ms;
+  }
+  & > :nth-child(6) {
+    animation-delay: 200ms;
+  }
+  & > :nth-child(7) {
+    animation-delay: 240ms;
+  }
+  & > :nth-child(8) {
+    animation-delay: 280ms;
+  }
+  & > :nth-child(9) {
+    animation-delay: 320ms;
+  }
+  & > :nth-child(10) {
+    animation-delay: 360ms;
+  }
+  & > :nth-child(11) {
+    animation-delay: 400ms;
+  }
+  & > :nth-child(n + 12) {
+    animation-delay: 440ms;
+  }
+}
+
+/* Apparition au défilement, sans JavaScript (navigateurs qui gèrent les animations liées au scroll). */
+@utility reveal {
+  @supports (animation-timeline: view()) {
+    animation: fade-up linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 55%;
+  }
+}
+
+/* Reflet de chargement des squelettes. */
+@utility skeleton {
+  background-image: linear-gradient(
+    90deg,
+    var(--surface-2) 25%,
+    color-mix(in oklab, var(--surface-2), var(--surface) 70%) 50%,
+    var(--surface-2) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
     text-rendering: optimizeLegibility;
+    scroll-padding-top: 5rem;
   }
 
   body {
     @apply bg-canvas font-sans text-ink antialiased;
+    isolation: isolate;
+    /* clip et non hidden : pas de défilement horizontal (halos pleine largeur, barre de
+       défilement de Windows) sans casser les éléments collants. */
+    overflow-x: clip;
+    font-feature-settings: 'ss01', 'cv11';
+  }
+
+  /* Grain léger sur le fond : donne de la matière au papier, invisible au premier regard. */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: var(--grain-opacity);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
   }
 
   ::selection {
-    background: var(--accent-soft);
+    background: color-mix(in oklab, var(--accent) 22%, transparent);
     color: var(--ink);
   }
 
   :focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
-    border-radius: 0.375rem;
+    border-radius: 0.5rem;
   }
 
   mark {
     background: var(--mark);
     color: inherit;
-    border-radius: 0.2em;
-    padding-inline: 0.1em;
+    border-radius: 0.25em;
+    padding-inline: 0.12em;
+  }
+
+  /* Transitions de page (API View Transitions, via React Router). L'en-tête et la barre
+     d'onglets ont leur propre nom : ils restent en place pendant que le contenu glisse. */
+  ::view-transition-old(root) {
+    animation: 160ms var(--ease-out-expo) both vt-out;
+  }
+  ::view-transition-new(root) {
+    animation: 420ms var(--ease-out-expo) both vt-in;
+  }
+  ::view-transition-group(song-title),
+  ::view-transition-group(artist-avatar) {
+    animation-duration: 450ms;
+    animation-timing-function: var(--ease-out-expo);
+  }
+
+  /* Changement de thème : le nouveau thème s'ouvre en cercle depuis le bouton. */
+  html.theme-transition::view-transition-old(root) {
+    animation: none;
+  }
+  html.theme-transition::view-transition-new(root) {
+    animation: theme-reveal 650ms var(--ease-out-expo) both;
+  }
+
+  @keyframes vt-out {
+    to {
+      opacity: 0;
+      transform: translate3d(0, -6px, 0);
+    }
+  }
+  @keyframes vt-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 12px, 0);
+    }
+  }
+  @keyframes theme-reveal {
+    from {
+      clip-path: circle(0 at var(--vt-x, 50%) var(--vt-y, 0));
+    }
+    to {
+      clip-path: circle(var(--vt-r, 150vmax) at var(--vt-x, 50%) var(--vt-y, 0));
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -120,8 +348,14 @@
     *::before,
     *::after {
       animation-duration: 0.01ms !important;
+      animation-delay: 0ms !important;
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
+    }
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+      animation: none !important;
     }
   }
 }

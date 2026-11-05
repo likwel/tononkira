@@ -21,9 +21,12 @@ export function ProgressBar({ percent }: { percent: number | null }) {
         <div className="h-full w-1/3 animate-pulse rounded-full bg-accent/70" />
       ) : (
         <div
-          className="h-full rounded-full bg-accent transition-[width] duration-500"
+          className="relative h-full overflow-hidden rounded-full bg-[linear-gradient(90deg,var(--accent),var(--sun))] transition-[width] duration-700 ease-[var(--ease-out-expo)]"
           style={{ width: `${Math.max(2, percent)}%` }}
-        />
+        >
+          {/* Reflet qui parcourt la barre : la tâche est vivante. */}
+          <span className="absolute inset-0 animate-shimmer bg-[linear-gradient(90deg,transparent,rgb(255_255_255/0.45),transparent)] bg-[length:200%_100%]" />
+        </div>
       )}
     </div>
   );
@@ -78,7 +81,7 @@ export function JobPanel({ job }: { job: JobSnapshot | JobRecord }) {
       <div className="flex flex-wrap items-start gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="font-serif text-xl font-semibold tracking-tight">
+            <h2 className="font-display text-xl font-semibold tracking-tight">
               {JOB_LABEL[job.type]} <span className="text-muted">#{job.id}</span>
             </h2>
             <JobStatusBadge status={job.status} />

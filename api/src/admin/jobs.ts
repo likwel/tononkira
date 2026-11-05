@@ -22,6 +22,8 @@ export interface JobOptions {
   refreshLists?: boolean | undefined;
   /** Importer dans la base à la fin (oui par défaut). */
   importAfter?: boolean | undefined;
+  /** Import : réécrire toutes les chansons, même inchangées (réimport complet). */
+  force?: boolean | undefined;
 }
 
 export interface JobSummary {
@@ -78,6 +80,7 @@ export interface FileImporter {
       onProgress: (report: ImportReport) => void;
       signal: AbortSignal;
       logger: ImportLogger;
+      force?: boolean | undefined;
     },
   ): Promise<ImportReport>;
 }
@@ -242,8 +245,15 @@ export class JobRunner {
     const { snapshot, controller } = job;
     const total = snapshot.summary.exported ?? null;
     snapshot.progress = { phase: 'import', current: 0, total };
-    this.log(job, 'Import dans la base (mise à jour par URL source, sans suppression)…');
+    const force = snapshot.options.force === true;
+    this.log(
+      job,
+      force
+        ? 'Réimport complet : toutes les chansons collectées sont réécrites (sans suppression)…'
+        : 'Import dans la base (mise à jour par URL source, sans suppression)…',
+    );
     const report = await this.deps.importer.importFile(this.deps.exportPath, {
+      force,
       signal: controller.signal,
       logger: { info: (line) => this.log(job, line), warn: (line) => this.log(job, line) },
       onProgress: (progress) => {

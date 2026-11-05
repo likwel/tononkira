@@ -64,13 +64,13 @@ function CrawlRow({ song }: { song: CrawlSong }) {
           {catalog ? (
             <Link
               to={songPath(catalog)}
-              className="truncate font-serif text-[17px] text-ink transition-colors hover:text-accent"
+              className="truncate font-display text-[17px] text-ink transition-colors hover:text-accent"
               title="Voir sur le site"
             >
               {song.title}
             </Link>
           ) : (
-            <span className="truncate font-serif text-[17px] text-ink">{song.title}</span>
+            <span className="truncate font-display text-[17px] text-ink">{song.title}</span>
           )}
           <a
             href={song.url}

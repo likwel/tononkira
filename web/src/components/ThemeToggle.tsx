@@ -1,4 +1,5 @@
 import { Monitor, Moon, Sun } from 'lucide-react';
+import { revealThemeChange } from '../lib/motion';
 import { NEXT_THEME, useThemePreference, type ThemePreference } from '../lib/theme';
 import { iconButton } from './ui';
 
@@ -18,12 +19,18 @@ export function ThemeToggle() {
   return (
     <button
       type="button"
-      onClick={() => setPreference(next)}
+      onClick={(event) => {
+        const box = event.currentTarget.getBoundingClientRect();
+        revealThemeChange(() => setPreference(next), {
+          x: box.left + box.width / 2,
+          y: box.top + box.height / 2,
+        });
+      }}
       className={iconButton}
       aria-label={`Thème ${LABEL[preference]}. Passer au thème ${LABEL[next]}`}
       title={`Thème ${LABEL[preference]}`}
     >
-      <Icon className="size-5" aria-hidden="true" />
+      <Icon key={preference} className="size-5 animate-pop" aria-hidden="true" />
     </button>
   );
 }

@@ -22,12 +22,15 @@ npm) les lance ensemble.
 
 ## Démarrage
 
-Prérequis : Node ≥ 22.12 (`.nvmrc` : 24), Python ≥ 3.11, Docker.
+Prérequis : Node ≥ 22.12 (`.nvmrc` : 24), Python ≥ 3.11, Docker. Les mêmes commandes
+fonctionnent sous **Linux, macOS et Windows** (PowerShell ou cmd) : les scripts `data:*`
+passent par `scripts/data.mjs`, qui trouve Python (`py -3`, `python` ou `python3`) et le
+venv (`.venv/bin` ou `.venv\Scripts`).
 
 ```bash
 npm install                      # api + web (génère aussi le client Prisma)
-npm run data:setup               # environnement Python de data/
-cp api/.env.example api/.env
+npm run data:setup               # environnement Python de data/ (data/.venv)
+cp api/.env.example api/.env     # Windows : copy api\.env.example api\.env
 
 npm run db:up                    # PostgreSQL dans Docker, port 5434
 npm run db:migrate               # crée les tables et les index de recherche
@@ -40,9 +43,24 @@ npm run dev                      # API http://localhost:4000/api + web http://lo
 
 Collecte complète : `npm run data:crawl` (environ 7 h 30 au délai poli de 1,5 s par
 requête, reprise automatique si interrompue), puis `npm run db:import`. Pour partir d'une
-page donnée : `npm run data:crawl -- --from 9`. Mise à jour ensuite : `cd data &&
-.venv/bin/python -m tononkira_data update && cd .. && npm run db:import` (l'import est
-idempotent).
+page donnée : `npm run data:crawl -- --from 9`. Mise à jour ensuite : `npm run data:update`
+puis `npm run db:import` (l'import est idempotent), ou le bouton **Mettre à jour** de
+l'administration.
+
+### Dépannage
+
+| Symptôme | Cause | Remède |
+|---|---|---|
+| L'API refuse de démarrer : « Client Prisma périmé » | le schéma a gagné un modèle (après un `git pull`) | `npm run db:generate -w api` (fait automatiquement par `npm run dev`) |
+| 503 « La base de données n'est pas à jour » | migration non appliquée | `npm run db:migrate` |
+| 503 « Base de données injoignable » | PostgreSQL arrêté ou `DATABASE_URL` erronée | `npm run db:up`, vérifier `api/.env` |
+| 502 « API injoignable » dans le navigateur | l'API n'est pas lancée | `npm run dev` (l'API écoute sur 4000) |
+| 503 « Python introuvable » dans l'administration | venv absent | `npm run data:setup`, ou `PYTHON_BIN` dans `api/.env` |
+
+En développement (`NODE_ENV=development`), une erreur 500 inattendue joint sa cause
+(`error.debug`) à la réponse ; en production, elle reste masquée et seulement journalisée.
+Le proxy de Vite vise `http://127.0.0.1:4000` (et non `localhost`, qui se résout en IPv6
+`::1` sous Windows alors que l'API écoute en IPv4) ; autre cible : `API_PROXY_TARGET`.
 
 ## Commandes
 
@@ -55,7 +73,7 @@ idempotent).
 | `npm run db:migrate` | appliquer les migrations Prisma (dev) ; en prod : `npm run db:deploy -w api` |
 | `npm run db:import [-- fichier.jsonl]` | importer le JSONL (défaut `data/output/songs.jsonl`) : mise à jour par URL source, rien n'est supprimé, les chansons inchangées sont sautées |
 | `npm run test:integration -w api` | tests avec PostgreSQL (base `tononkira_test`, créée au besoin) |
-| `npm run data:crawl [-- options]` / `data:stats` / `data:export` | collecte (voir [data/README.md](data/README.md)) |
+| `npm run data:crawl [-- options]` / `data:update` / `data:stats` / `data:export` / `data:test` | collecte (voir [data/README.md](data/README.md)) |
 
 ## API
 
@@ -84,11 +102,17 @@ Accès par jeton : définir `ADMIN_TOKEN` (24 caractères ou plus) dans `api/.en
 le saisir sur `/admin`. Sans jeton, `/api/admin` répond 503 ; après 20 jetons faux en
 15 minutes, il répond 429.
 
+- **Mettre à jour** (en-tête, sur toutes les pages) : un clic cherche les nouvelles
+  chansons sur la source puis met la base à jour. Le menu propose aussi « Réimporter
+  toutes les données » (réécrit chaque chanson collectée, même inchangée, sans rien
+  supprimer), « Importer les changements » et « Revérifier 100 pages ». Pendant une tâche,
+  le bouton affiche sa progression.
 - **Vue d'ensemble** : chansons en base, pages collectées, en attente, en erreur, pages
   de liste lues ; tâche en cours avec progression et journal en direct, bouton Arrêter.
 - **Lancer une tâche** : collecte (de la page X à Y, nombre de chansons, délai entre
   requêtes), nouveautés (depuis la page 1 jusqu'à une page sans nouveauté),
-  revérification des pages déjà collectées, import seul. Import en base à la fin.
+  revérification des pages déjà collectées, import seul (option « réimport complet »).
+  Import en base à la fin.
 - **Pages collectées** : historique de chaque page (statut, date de la version
   enregistrée, dernière vérification), recherche, filtres, tri « modifiées
   récemment » / « à revérifier ». Bouton **Vérifier** par page : relit la page, signale
@@ -122,8 +146,14 @@ Routes en malagasy : `/hira` (chansons), `/hira/:artiste/:chanson`, `/mpihira`
 - Favoris sans compte (stockés dans le navigateur, synchronisés entre onglets).
 - Mobile : barre d'onglets en bas, zones tactiles de 40 px, encoches gérées
   (`safe-area-inset`). Bureau : navigation et recherche dans l'en-tête.
-- Thème clair / sombre / système appliqué avant le premier rendu (pas de flash),
-  palette « latérite et ravinala », polices Fraunces et Inter auto-hébergées.
+- Thème clair / sombre / système appliqué avant le premier rendu (pas de flash) ;
+  palette « Flamboyant & Lagon » (vermillon, bleu lagon, mangue ; nuit prune en sombre).
+- Typographie auto-hébergée : Bricolage Grotesque (titres), Figtree (interface),
+  Newsreader (paroles).
+- Mouvement : transitions de page (le titre d'une chanson glisse de la carte vers sa
+  page), thème qui s'ouvre en cercle depuis le bouton, apparitions en cascade et au
+  défilement, égaliseur animé, barre d'outils collante qui reprend le titre. Tout est
+  coupé si le système demande moins d'animations.
 - Vignettes générées (initiales sur dégradé) : aucune image n'est chargée depuis le site
   source.
 

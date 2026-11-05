@@ -4,6 +4,7 @@ import { Logo } from '../components/layout/Logo';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { buttonGhost, cx, iconButton } from '../components/ui';
 import { clearAdminToken, useAdminToken } from './auth';
+import { UpdateMenu } from './components/UpdateMenu';
 import { LoginPage } from './pages/LoginPage';
 import { useOverview } from './queries';
 
@@ -56,22 +57,15 @@ export function AdminLayout() {
       <header className="sticky top-0 z-40 border-b border-line/70 bg-canvas/85 backdrop-blur-md">
         <div className="container-page flex h-16 items-center gap-3">
           <Logo />
-          <span className="rounded-full bg-ink px-2 py-0.5 text-[10px] font-semibold tracking-[0.14em] text-canvas uppercase">
+          <span className="rounded-full bg-ink px-2 py-0.5 text-[10px] font-semibold tracking-[0.14em] text-canvas uppercase max-sm:hidden">
             Admin
           </span>
-          <nav aria-label="Administration" className="ml-4 hidden lg:block">
-            <ul className="flex items-center gap-1">
-              <AdminTabs />
-            </ul>
-          </nav>
           <div className="ml-auto flex items-center gap-1">
+            <UpdateMenu />
             {/* max-sm:hidden plutôt que hidden : buttonGhost porte déjà un display. */}
-            <Link to="/" className={cx(buttonGhost, 'max-sm:hidden')}>
+            <Link to="/" className={cx(buttonGhost, 'whitespace-nowrap max-sm:hidden')}>
               <ExternalLink className="size-4" aria-hidden="true" />
               Voir le site
-            </Link>
-            <Link to="/" className={cx(iconButton, 'sm:hidden')} aria-label="Voir le site">
-              <ExternalLink className="size-5" aria-hidden="true" />
             </Link>
             <ThemeToggle />
             <button
@@ -85,7 +79,8 @@ export function AdminLayout() {
             </button>
           </div>
         </div>
-        <nav aria-label="Administration" className="border-t border-line/60 lg:hidden">
+        {/* Onglets sur une seconde rangée à toutes les tailles : cinq sections tiennent sans se serrer. */}
+        <nav aria-label="Administration" className="border-t border-line/60">
           <ul className="no-scrollbar container-page flex gap-1 overflow-x-auto py-2">
             <AdminTabs />
           </ul>
@@ -111,7 +106,7 @@ export function AdminHeading({
   return (
     <div className="mb-8 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h1 className="font-serif text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h1>
+        <h1 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h1>
         {subtitle && <p className="mt-1.5 max-w-2xl text-sm text-muted text-pretty">{subtitle}</p>}
       </div>
       {children}

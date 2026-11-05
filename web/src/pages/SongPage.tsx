@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router';
+import { Avatar } from '../components/Avatar';
 import { FavoriteButton } from '../components/FavoriteButton';
 import { LyricsEditForm } from '../components/LyricsEditForm';
 import { ReadingMode } from '../components/ReadingMode';
@@ -23,6 +24,7 @@ import { LoadingLabel } from '../components/Skeletons';
 import { SongCard } from '../components/SongCard';
 import { EmptyState, ErrorState, isNotFound } from '../components/States';
 import { buttonGhost, buttonSecondary, cx, iconButton } from '../components/ui';
+import { useInView } from '../hooks/motion';
 import { useSong } from '../hooks/queries';
 import { artistPath } from '../lib/api';
 import { artistNames, formatDate, formatNumber } from '../lib/format';
@@ -111,6 +113,9 @@ function SongView({ song }: { song: SongDetail }) {
   const [reading, setReading] = useState(false);
   const [editing, setEditing] = useState(false);
   const editAnchor = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  // Titre sorti de l'écran : la barre d'outils collante le reprend en version compacte.
+  const titleVisible = useInView(titleRef);
 
   // Rubrique « Reprendre la lecture » de l'accueil.
   useEffect(() => recordView(song), [song.artistSlug, song.slug]);
@@ -149,7 +154,15 @@ function SongView({ song }: { song: SongDetail }) {
   }
 
   return (
-    <article className="container-page max-w-3xl pt-8">
+    <article className="relative container-page max-w-3xl pt-8">
+      {/* Halo pleine largeur, fondu vers le bas : pas de bord visible. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-24 left-1/2 -z-10 h-[30rem] w-screen -translate-x-1/2 overflow-hidden [mask-image:linear-gradient(to_bottom,black_40%,transparent)]"
+      >
+        <div className="absolute -top-20 left-[30%] size-96 animate-drift rounded-full bg-accent/15 blur-3xl" />
+        <div className="absolute -top-10 right-[22%] size-80 animate-drift rounded-full bg-lagoon/15 blur-3xl [animation-delay:-11s]" />
+      </div>
       <title>{`${song.title} — ${artistNames(song.artists)} · Tononkira`}</title>
       <meta
         name="description"
@@ -176,17 +189,27 @@ function SongView({ song }: { song: SongDetail }) {
         </ol>
       </nav>
 
-      <header className="mt-6">
-        <h1 className="font-serif text-4xl leading-[1.1] font-semibold tracking-tight text-balance sm:text-5xl">
+      <header className="mt-6 animate-fade-up">
+        <h1
+          ref={titleRef}
+          style={{ viewTransitionName: 'song-title' }}
+          className="w-fit max-w-full font-display text-[2.6rem] leading-[1.02] font-bold tracking-[-0.035em] text-balance sm:text-6xl"
+        >
           {song.title}
         </h1>
-        <p className="mt-3 text-lg">
+        <p className="mt-4 flex flex-wrap items-center gap-x-1 text-lg">
+          {mainArtist && (
+            <span className="mr-2">
+              <Avatar name={mainArtist.name} seed={mainArtist.slug} size="sm" />
+            </span>
+          )}
           {song.artists.map((artist, index) => (
             <span key={artist.slug}>
               {index > 0 && <span className="text-muted">, </span>}
               <Link
                 to={artistPath(artist)}
-                className="font-medium text-accent underline-offset-4 hover:underline"
+                viewTransition
+                className="font-semibold text-accent decoration-2 underline-offset-4 hover:underline"
               >
                 {artist.name}
               </Link>
@@ -216,7 +239,19 @@ function SongView({ song }: { song: SongDetail }) {
         </dl>
       </header>
 
-      <div className="sticky top-16 z-30 -mx-4 mt-6 flex items-center gap-1 border-y border-line/70 bg-canvas/85 px-4 py-2 backdrop-blur-md sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:backdrop-blur-none print:hidden">
+      <div
+        className={cx(
+          'sticky top-16 z-30 -mx-4 mt-6 flex items-center gap-1 border-b px-4 py-2 backdrop-blur-xl transition-[background-color,border-color,box-shadow] duration-300 sm:-mx-6 sm:px-6 print:hidden',
+          titleVisible
+            ? 'border-transparent bg-canvas/40'
+            : 'border-line/70 bg-canvas/85 shadow-soft',
+        )}
+      >
+        {!titleVisible && (
+          <span className="mr-2 hidden min-w-0 animate-fade-in truncate font-display text-base font-bold tracking-tight md:block">
+            {song.title}
+          </span>
+        )}
         <FavoriteButton song={song} />
         <button
           type="button"
@@ -287,7 +322,7 @@ function SongView({ song }: { song: SongDetail }) {
       </p>
       {flash && (
         <div className="pointer-events-none fixed inset-x-0 bottom-24 z-50 flex justify-center md:bottom-8 print:hidden">
-          <span className="rounded-full bg-ink px-4 py-2 text-sm font-medium text-canvas shadow-lift">
+          <span className="animate-fade-up rounded-full bg-ink px-4 py-2 text-sm font-medium text-canvas shadow-lift">
             {flash}
           </span>
         </div>
@@ -298,7 +333,12 @@ function SongView({ song }: { song: SongDetail }) {
           <LyricsEditForm song={song} onClose={() => setEditing(false)} />
         ) : (
           <>
-            <div className="mt-6 rounded-3xl border border-line bg-surface px-5 py-7 shadow-soft sm:px-12 sm:py-12 print:border-0 print:px-0 print:shadow-none">
+            <div className="relative mt-6 animate-fade-up overflow-hidden rounded-3xl border border-line bg-surface px-5 py-7 shadow-soft [animation-delay:120ms] sm:px-12 sm:py-12 print:border-0 print:px-0 print:shadow-none">
+              {/* Filet de couleur en tête de la feuille de paroles. */}
+              <span
+                aria-hidden="true"
+                className="absolute inset-x-0 top-0 h-1 bg-[linear-gradient(90deg,var(--accent),var(--sun),var(--lagoon))] print:hidden"
+              />
               <LyricsView lyrics={song.lyrics} size={lyricsSize.size} />
             </div>
             <div className="mt-4 flex justify-center print:hidden">
@@ -333,12 +373,20 @@ function SongView({ song }: { song: SongDetail }) {
 
       {song.related.length > 0 && (
         <section className="mt-16 print:hidden" aria-labelledby="related-title">
-          <h2 id="related-title" className="mb-5 font-serif text-2xl font-semibold tracking-tight">
+          <h2
+            id="related-title"
+            className="mb-5 font-display text-[1.65rem] font-bold tracking-[-0.025em]"
+          >
             Du même artiste
           </h2>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="stagger grid gap-3 sm:grid-cols-2">
             {song.related.map((related) => (
-              <SongCard key={`${related.artistSlug}/${related.slug}`} song={related} />
+              // morph désactivé : le titre de cette page porte déjà le nom de transition.
+              <SongCard
+                key={`${related.artistSlug}/${related.slug}`}
+                song={related}
+                morph={false}
+              />
             ))}
           </div>
         </section>

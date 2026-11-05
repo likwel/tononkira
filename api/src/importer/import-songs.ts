@@ -19,6 +19,8 @@ export interface ImportLogger {
 }
 
 export interface ImportOptions {
+  /** Réécrit aussi les chansons dont le contenu n'a pas changé (réimport complet). */
+  force?: boolean | undefined;
   progressEvery?: number;
   onProgress?: (report: ImportReport) => void;
   signal?: AbortSignal;
@@ -49,13 +51,16 @@ export class SongImporter {
 
   constructor(private readonly db: PrismaClient) {}
 
-  async upsert(song: SongInput): Promise<UpsertOutcome> {
+  async upsert(
+    song: SongInput,
+    { force = false }: { force?: boolean } = {},
+  ): Promise<UpsertOutcome> {
     const contentHash = songHash(song);
     const existing = await this.db.song.findUnique({
       where: { sourceUrl: song.sourceUrl },
       select: { id: true, contentHash: true },
     });
-    if (existing?.contentHash === contentHash) return 'unchanged';
+    if (!force && existing?.contentHash === contentHash) return 'unchanged';
 
     const { artists, ...fields } = song;
     const data = { ...fields, contentHash };
@@ -97,7 +102,7 @@ export async function importSongs(
   db: PrismaClient,
   lines: AsyncIterable<string>,
   logger: ImportLogger,
-  { progressEvery = 500, onProgress, signal }: ImportOptions = {},
+  { force = false, progressEvery = 500, onProgress, signal }: ImportOptions = {},
 ): Promise<ImportReport> {
   const report: ImportReport = {
     lines: 0,
@@ -120,7 +125,7 @@ export async function importSongs(
       continue;
     }
     try {
-      report[await importer.upsert(parsed.song)] += 1;
+      report[await importer.upsert(parsed.song, { force })] += 1;
     } catch (error) {
       report.failed += 1;
       logger.warn(`Ligne ${report.lines} (${parsed.song.sourceUrl}) en échec — ${String(error)}`);

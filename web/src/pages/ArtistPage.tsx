@@ -8,7 +8,7 @@ import { EmptyState, ErrorState, isNotFound } from '../components/States';
 import { buttonSecondary } from '../components/ui';
 import { useArtist } from '../hooks/queries';
 import { matchRanges } from '../lib/highlight';
-import { formatCount, plural } from '../lib/format';
+import { formatCount, gradientFor, plural } from '../lib/format';
 
 export function ArtistPage() {
   const { slug = '' } = useParams();
@@ -62,13 +62,25 @@ export function ArtistPage() {
       ) : (
         <>
           <title>{`${artist.name} — paroles · Tononkira`}</title>
-          <header className="mt-6 flex flex-col items-start gap-6 sm:flex-row sm:items-center">
-            <Avatar name={artist.name} seed={artist.slug} size="xl" />
+          <header className="relative isolate mt-6 flex animate-fade-up flex-col items-start gap-6 sm:flex-row sm:items-center">
+            {/* Halo aux couleurs de la vignette de l'artiste. */}
+            <div
+              aria-hidden="true"
+              className="absolute -top-16 -left-10 -z-10 h-56 w-[28rem] max-w-full rounded-full opacity-25 blur-3xl"
+              style={{ backgroundImage: gradientFor(artist.slug) }}
+            />
+            <span
+              style={{ viewTransitionName: 'artist-avatar' }}
+              className="rounded-full shadow-lift ring-4 ring-surface"
+            >
+              <Avatar name={artist.name} seed={artist.slug} size="xl" />
+            </span>
             <div>
-              <p className="text-xs font-semibold tracking-[0.18em] text-accent uppercase">
+              <p className="inline-flex items-center gap-2.5 text-xs font-bold tracking-[0.2em] text-accent uppercase">
+                <span className="h-px w-7 bg-current" aria-hidden="true" />
                 Mpihira
               </p>
-              <h1 className="mt-1 font-serif text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
+              <h1 className="mt-2 font-display text-[2.6rem] leading-[1.02] font-bold tracking-[-0.035em] text-balance sm:text-6xl">
                 {artist.name}
               </h1>
               <p className="mt-2 text-muted">
@@ -80,7 +92,7 @@ export function ArtistPage() {
 
           <section className="mt-10" aria-labelledby="songs-title">
             <div className="flex flex-col gap-3 border-b border-line pb-4 sm:flex-row sm:items-end sm:justify-between">
-              <h2 id="songs-title" className="font-serif text-2xl font-semibold tracking-tight">
+              <h2 id="songs-title" className="font-display text-2xl font-semibold tracking-tight">
                 Chansons
               </h2>
               {artist.songs.length > 10 && (
@@ -106,7 +118,7 @@ export function ArtistPage() {
             {songs.length === 0 ? (
               <p className="py-10 text-center text-muted">Aucun titre ne correspond.</p>
             ) : (
-              <ol>
+              <ol className="stagger">
                 {songs.map((song, index) => (
                   <li key={song.slug} className="border-b border-line/70">
                     <SongRow

@@ -13,7 +13,7 @@ export const NEXT_THEME: Record<ThemePreference, ThemePreference> = {
   system: 'light',
 };
 
-const THEME_COLOR: Record<ResolvedTheme, string> = { light: '#faf6ef', dark: '#14110e' };
+const THEME_COLOR: Record<ResolvedTheme, string> = { light: '#fbf8f4', dark: '#120f17' };
 
 function isPreference(value: string): value is ThemePreference {
   return value === 'light' || value === 'dark' || value === 'system';

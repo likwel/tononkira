@@ -1,4 +1,4 @@
-const bar = 'animate-pulse rounded-md bg-surface-2';
+const bar = 'skeleton rounded-md';
 
 export function SongCardSkeleton() {
   return (

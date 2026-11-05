@@ -100,6 +100,7 @@ export function buildOptions(
     retryErrors: boolean;
     refreshLists: boolean;
     importAfter: boolean;
+    force?: boolean;
   },
 ): JobOptions {
   const options: JobOptions = {};
@@ -118,6 +119,7 @@ export function buildOptions(
     set('delay', toNumber(form.delay));
     options.importAfter = form.importAfter;
   }
+  if (type === 'import' && form.force) options.force = true;
   return options;
 }
 
@@ -132,6 +134,7 @@ export function LaunchForm({ disabled }: { disabled: boolean }) {
     retryErrors: false,
     refreshLists: false,
     importAfter: true,
+    force: false,
   });
   const update =
     <K extends keyof typeof form>(key: K) =>
@@ -148,7 +151,7 @@ export function LaunchForm({ disabled }: { disabled: boolean }) {
       onSubmit={onSubmit}
       className="rounded-3xl border border-line bg-surface p-5 shadow-soft sm:p-6"
     >
-      <h2 className="font-serif text-xl font-semibold tracking-tight">Lancer une tâche</h2>
+      <h2 className="font-display text-xl font-semibold tracking-tight">Lancer une tâche</h2>
 
       <fieldset className="mt-4">
         <legend className="sr-only">Type de tâche</legend>
@@ -214,6 +217,14 @@ export function LaunchForm({ disabled }: { disabled: boolean }) {
             placeholder="toutes"
             hint="Les petites corrections (4 mots ou moins, même nombre de lignes) ne sont pas détectées : la source ajoute des mots différents à chaque chargement."
           />
+        )}
+        {type === 'import' && (
+          <Check checked={form.force} onChange={update('force')}>
+            Réimport complet{' '}
+            <span className="text-muted">
+              (réécrit toutes les chansons, même inchangées ; rien n'est supprimé)
+            </span>
+          </Check>
         )}
         {type !== 'import' && (
           <Check checked={form.importAfter} onChange={update('importAfter')}>
