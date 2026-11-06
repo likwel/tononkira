@@ -11,9 +11,18 @@ const editBody = z.object({
   author: z.string().trim().max(80).optional(),
 });
 
-/** Les données ne changent qu'à l'import : un court cache navigateur/CDN suffit. */
+/** Listes et statistiques : un court cache navigateur/CDN suffit. */
 function cacheFor(res: Response, seconds: number): void {
-  res.set('Cache-Control', `public, max-age=${seconds}, stale-while-revalidate=${seconds * 5}`);
+  res.set('Cache-Control', `public, max-age=${seconds}, stale-while-revalidate=${seconds}`);
+}
+
+/**
+ * Pages qui peuvent changer à tout moment (paroles corrigées par l'administration) :
+ * le navigateur revalide à chaque visite grâce à l'ETag d'Express (réponse 304 vide si
+ * rien n'a changé), au lieu de réafficher une ancienne version mise en cache.
+ */
+function revalidate(res: Response): void {
+  res.set('Cache-Control', 'no-cache');
 }
 
 export function createApiRouter(catalog: Catalog, edits?: LyricEdits): Router {
@@ -48,7 +57,7 @@ export function createApiRouter(catalog: Catalog, edits?: LyricEdits): Router {
   });
 
   router.get('/songs/:artistSlug/:slug', async (req, res) => {
-    cacheFor(res, 300);
+    revalidate(res);
     const song = await catalog.getSong(req.params.artistSlug, req.params.slug);
     if (!song) throw HttpError.notFound('Chanson introuvable');
     res.json({ data: song });
@@ -78,7 +87,7 @@ export function createApiRouter(catalog: Catalog, edits?: LyricEdits): Router {
   });
 
   router.get('/artists/:slug', async (req, res) => {
-    cacheFor(res, 300);
+    cacheFor(res, 60);
     const artist = await catalog.getArtist(req.params.slug);
     if (!artist) throw HttpError.notFound('Artiste introuvable');
     res.json({ data: artist });

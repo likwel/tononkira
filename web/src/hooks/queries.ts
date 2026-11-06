@@ -39,7 +39,10 @@ export function useSong(artistSlug: string, slug: string) {
   return useQuery({
     queryKey: ['song', artistSlug, slug],
     queryFn: ({ signal }) => api.song(artistSlug, slug, signal),
-    staleTime: 5 * 60_000,
+    // Les paroles peuvent être corrigées à tout moment : on réaffiche le cache tout de
+    // suite, puis on revérifie à chaque visite et au retour sur l'onglet (304 si inchangé).
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
 }
 

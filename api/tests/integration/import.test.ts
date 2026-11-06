@@ -1,6 +1,7 @@
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { createPrisma } from '../../src/db.js';
 import { importSongs } from '../../src/importer/import-songs.js';
+import { PrismaLyricEdits } from '../../src/prisma-lyric-edits.js';
 import { TEST_DATABASE_URL } from './global-setup.js';
 
 const db = createPrisma(TEST_DATABASE_URL);
@@ -93,5 +94,54 @@ describe('import JSONL (mise à jour par URL source)', () => {
   it('signale une ligne invalide sans bloquer les autres', async () => {
     const report = await importSongs(db, lines('{"title": ', line('potika')), silent);
     expect(report).toMatchObject({ invalid: 1, created: 1 });
+  });
+});
+
+describe('corrections approuvées et imports', () => {
+  const url = 'https://tononkira.serasera.org/hira/magma/potika';
+  const corrected = 'Andalana voalohany voahitsy\nAndalana 2';
+
+  async function approveCorrection() {
+    const edits = new PrismaLyricEdits(db);
+    const edit = await edits.submit({ artistSlug: 'magma', slug: 'potika', lyrics: corrected });
+    if (typeof edit === 'string') throw new Error(edit);
+    await edits.review(edit.id, 'approve');
+  }
+
+  const lyricsInDb = async () =>
+    (await db.song.findUniqueOrThrow({ where: { sourceUrl: url }, select: { lyrics: true } }))
+      .lyrics;
+
+  it('survit à un import où la page source a changé (vues, titre…)', async () => {
+    await importSongs(db, lines(line('potika')), silent);
+    await approveCorrection();
+
+    const report = await importSongs(db, lines(line('potika', { views: 999 })), silent);
+
+    expect(report.updated).toBe(1);
+    expect(await lyricsInDb()).toBe(corrected);
+    const { views } = await db.song.findUniqueOrThrow({ where: { sourceUrl: url } });
+    expect(views).toBe(999);
+  });
+
+  it('survit à un réimport complet', async () => {
+    await importSongs(db, lines(line('potika')), silent);
+    await approveCorrection();
+
+    await importSongs(db, lines(line('potika')), silent, { force: true });
+
+    expect(await lyricsInDb()).toBe(corrected);
+  });
+
+  it('est rétablie si un ancien import l’avait écrasée', async () => {
+    await importSongs(db, lines(line('potika')), silent);
+    await approveCorrection();
+    // Ce que faisaient les imports avant la correction du bug : paroles de la source réécrites.
+    await db.song.update({ where: { sourceUrl: url }, data: { lyrics: 'Andalana 1\nAndalana 2' } });
+
+    const report = await importSongs(db, lines(line('potika')), silent);
+
+    expect(report.updated).toBe(1);
+    expect(await lyricsInDb()).toBe(corrected);
   });
 });

@@ -99,8 +99,8 @@ export class PrismaLyricEdits implements LyricEdits {
     const published = lyrics ?? current.lyrics;
     const row = await this.db.$transaction(async (tx) => {
       if (action === 'approve') {
-        // `contentHash` n'est pas touché : un import ultérieur de la même page source
-        // reste « inchangé » et ne réécrit donc pas la correction validée.
+        // Les imports suivants réappliquent cette correction (voir SongImporter) : elle
+        // survit aux mises à jour de la source et aux réimports complets.
         await tx.song.update({ where: { id: current.songId }, data: { lyrics: published } });
       }
       return tx.lyricEdit.update({

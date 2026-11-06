@@ -57,6 +57,17 @@ describe('GET /api/songs', () => {
 });
 
 describe('GET /api/songs/:artistSlug/:slug', () => {
+  it('est revalidée à chaque visite : une correction approuvée se voit aussitôt', async () => {
+    const first = await request(app).get('/api/songs/mpihira/hira');
+    expect(first.headers['cache-control']).toBe('no-cache');
+    expect(first.headers.etag).toBeTruthy();
+
+    const again = await request(app)
+      .get('/api/songs/mpihira/hira')
+      .set('If-None-Match', first.headers.etag!);
+    expect(again.status).toBe(304);
+  });
+
   it('renvoie la chanson avec ses paroles et sa source', async () => {
     const res = await request(app).get('/api/songs/mpihira/hira');
     expect(res.status).toBe(200);

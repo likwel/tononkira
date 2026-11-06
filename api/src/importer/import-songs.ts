@@ -43,7 +43,9 @@ export function songHash(song: SongInput): string {
  * - une chanson est identifiée par son URL source (`source_url`), un artiste par son slug ;
  * - chanson connue : ses champs sont mis à jour (même identifiant, mêmes liens) ;
  * - chanson inconnue : elle est créée ;
- * - rien n'est jamais supprimé : une chanson absente du fichier reste en base.
+ * - rien n'est jamais supprimé : une chanson absente du fichier reste en base ;
+ * - une correction de paroles approuvée par l'administration n'est jamais écrasée par la
+ *   source, même lors d'un réimport complet.
  */
 export class SongImporter {
   /** slug → identifiant, complété seulement après validation d'une transaction. */
@@ -58,12 +60,40 @@ export class SongImporter {
     const contentHash = songHash(song);
     const existing = await this.db.song.findUnique({
       where: { sourceUrl: song.sourceUrl },
-      select: { id: true, contentHash: true },
+      select: {
+        id: true,
+        contentHash: true,
+        // Dernière correction approuvée par l'administration : elle prime sur la source.
+        edits: {
+          where: { status: 'approved' },
+          orderBy: [{ reviewedAt: 'desc' }, { id: 'desc' }],
+          take: 1,
+          select: { lyrics: true },
+        },
+      },
     });
-    if (!force && existing?.contentHash === contentHash) return 'unchanged';
+    const correction = existing?.edits[0]?.lyrics;
+
+    if (!force && existing?.contentHash === contentHash) {
+      if (correction === undefined) return 'unchanged';
+      // Source inchangée, mais un ancien import a pu écraser la correction : on la rétablit.
+      const { lyrics } = await this.db.song.findUniqueOrThrow({
+        where: { id: existing.id },
+        select: { lyrics: true },
+      });
+      if (lyrics === correction) return 'unchanged';
+      await this.db.song.update({ where: { id: existing.id }, data: { lyrics: correction } });
+      return 'updated';
+    }
 
     const { artists, ...fields } = song;
-    const data = { ...fields, contentHash };
+    // Les paroles de la source ne remplacent jamais une correction approuvée ; le reste
+    // (vues, titre, artistes…) est mis à jour. L'empreinte reste celle de la source.
+    const data = {
+      ...fields,
+      ...(correction !== undefined ? { lyrics: correction } : {}),
+      contentHash,
+    };
     const created = new Map<string, { id: number; name: string }>();
 
     await this.db.$transaction(async (tx) => {
