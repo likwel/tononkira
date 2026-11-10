@@ -12,7 +12,7 @@
     "node": ">=22.12"
   },
   "scripts": {
-    "dev": "concurrently -k -n api,web -c cyan,magenta \"npm run dev -w api\" \"npm run dev -w web\"",
+    "dev": "concurrently -k -n api,web -c cyan,magenta \"npm run dev -w api\" \"node scripts/wait-for-api.mjs && npm run dev -w web\"",
     "build": "npm run build -w api && npm run build -w web",
     "typecheck": "npm run typecheck -w api && npm run typecheck -w web",
     "test": "npm run test -w api && npm run test -w web && npm run data:test",
